@@ -730,7 +730,7 @@ export default function LifeByShift() {
               const k = key(date);
               const inMonth = date.getMonth()===month.getMonth();
               const today   = isToday(date);
-              const payday  = isPayDay(date,settings) && inMonth;
+              const payday  = isPayDay(date,settings);
               const shift   = schedule[k];
               const band    = payBand(date,settings.payPeriodStartDate);
               const hasNote = !!(notes[k]);

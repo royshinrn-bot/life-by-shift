@@ -500,29 +500,56 @@ const iconBtn = { background:"none",border:"none",fontSize:28,cursor:"pointer",p
 
 export default function LifeByShift() {
   const now = new Date();
-  const [darkMode, setDarkMode]   = useState(false);
+
+  // ── localStorage helpers ──
+  function loadJSON(key, fallback) {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
+  }
+  function saveJSON(key, val) {
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+  }
+  function loadSettings() {
+    const s = loadJSON("lbs_settings", null);
+    if (!s) return {
+      payPeriodStartDate: new Date(now.getFullYear(), now.getMonth(), 1),
+      payPeriodColor: "#BBDEFB", showPayDay: true, payDayFrequency: "biweekly",
+      payDayOfMonth: 15, payDayAnchor: new Date(now.getFullYear(), now.getMonth(), 1),
+      hourlyRate: 0, otMultiplier: 1.5,
+    };
+    return { ...s,
+      payPeriodStartDate: new Date(s.payPeriodStartDate),
+      payDayAnchor: new Date(s.payDayAnchor),
+    };
+  }
+  function loadShiftTypes() {
+    return loadJSON("lbs_shiftTypes", null) || defaultShiftTypes();
+  }
+
+  const [darkMode, setDarkMode]   = useState(() => loadJSON("lbs_darkMode", false));
   const [month, setMonth]         = useState(new Date(now.getFullYear(), now.getMonth()));
-  const [schedule, setSchedule]   = useState({});
-  const [notes, setNotes]         = useState({});
+  const [schedule, setSchedule]   = useState(() => loadJSON("lbs_schedule", {}));
+  const [notes, setNotes]         = useState(() => loadJSON("lbs_notes", {}));
   const [selectedDate, setSelectedDate] = useState(null);
-  const [shiftTypes, setShiftTypes] = useState(defaultShiftTypes());
+  const [shiftTypes, setShiftTypes] = useState(() => loadShiftTypes());
   const [dragging, setDragging]   = useState(null);
-  const [selectedShift, setSelectedShift] = useState(null); // for tap-to-assign on mobile
+  const [selectedShift, setSelectedShift] = useState(null);
   const [hovering, setHovering]   = useState(null);
-  const [otDialog, setOtDialog]   = useState(null);   // {date, shift}
-  const [noteDialog, setNoteDialog] = useState(null); // date
-  const [confirmDialog, setConfirmDialog] = useState(null); // {date, key}
+  const [otDialog, setOtDialog]   = useState(null);
+  const [noteDialog, setNoteDialog] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [settings, setSettings]   = useState({
-    payPeriodStartDate: new Date(now.getFullYear(), now.getMonth(), 1),
-    payPeriodColor: "#BBDEFB",
-    showPayDay: true,
-    payDayFrequency: "biweekly",
-    payDayOfMonth: 15,
-    payDayAnchor: new Date(now.getFullYear(), now.getMonth(), 1),
-    hourlyRate: 0,
-    otMultiplier: 1.5,
-  });
+  const [settings, setSettings]   = useState(() => loadSettings());
+
+  // ── auto-save ──
+  useEffect(() => { saveJSON("lbs_schedule", schedule); }, [schedule]);
+  useEffect(() => { saveJSON("lbs_notes", notes); }, [notes]);
+  useEffect(() => { saveJSON("lbs_shiftTypes", shiftTypes); }, [shiftTypes]);
+  useEffect(() => { saveJSON("lbs_darkMode", darkMode); }, [darkMode]);
+  useEffect(() => { saveJSON("lbs_settings", {
+    ...settings,
+    payPeriodStartDate: settings.payPeriodStartDate.toISOString(),
+    payDayAnchor: settings.payDayAnchor.toISOString(),
+  }); }, [settings]);
 
   const bg   = darkMode ? "#1a1a2e" : "#f5f7fa";
   const surf = darkMode ? "#16213e"  : "#ffffff";

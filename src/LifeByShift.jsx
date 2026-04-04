@@ -159,7 +159,7 @@ function isPayDay(date, settings) {
   const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const a = new Date(settings.payDayAnchor.getFullYear(), settings.payDayAnchor.getMonth(), settings.payDayAnchor.getDate());
   const diff = Math.round((d - a) / 86400000);
-  return diff >= 0 && diff % 14 === 0;
+  return diff % 14 === 0;
 }
 
 // ── Hex with opacity helper ───────────────────────────────────────────────

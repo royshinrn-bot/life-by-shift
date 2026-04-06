@@ -847,7 +847,7 @@ export default function LifeByShift() {
       )}
       {showHelp && (
         <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
-          <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:400,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",overflow:"hidden" }}>
+          <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:400,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",overflow:"hidden",maxHeight:"90vh",display:"flex",flexDirection:"column" }}>
             {/* 헤더 */}
             <div style={{ background:"#1565C0",padding:"20px 20px 16px" }}>
               <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
@@ -859,7 +859,7 @@ export default function LifeByShift() {
               </div>
             </div>
             {/* 내용 */}
-            <div style={{ padding:"20px 20px 24px",display:"flex",flexDirection:"column",gap:16 }}>
+            <div style={{ padding:"20px 20px 24px",display:"flex",flexDirection:"column",gap:16,overflowY:"auto" }}>
 
               {/* 베타 안내 */}
               <div style={{ background:"#FFF8E1",borderRadius:12,padding:"12px 14px",border:"1px solid #FFE082" }}>

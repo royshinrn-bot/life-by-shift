@@ -823,7 +823,7 @@ export default function LifeByShift() {
               <span style={{ color:text }}>{notes[key(selectedDate)]}</span>
             </div>
           ) : (
-            <p style={{ margin:"6px 0 0",fontSize:14,color:sub,fontStyle:"italic" }}>Right-click / long-press to add a note</p>
+            <p style={{ margin:"6px 0 0",fontSize:14,color:sub,fontStyle:"italic" }}>Add your note.</p>
           )}
         </div>
       )}

@@ -86,8 +86,8 @@ const Icons = {
 
 // ── Default shift types ───────────────────────────────────────────────────
 const defaultShiftTypes = () => [
-  { id: 1, name: "Day",   icon: "sun",  color: "#FF8F00", hours: 8,  showOnCalendar: true,  isOvertimeRate: false },
-  { id: 2, name: "Night", icon: "moon", color: "#3949AB", hours: 8,  showOnCalendar: true,  isOvertimeRate: false },
+  { id: 1, name: "Day",   icon: "sun",  color: "#FF8F00", hours: 12, showOnCalendar: true,  isOvertimeRate: false },
+  { id: 2, name: "Night", icon: "moon", color: "#3949AB", hours: 12, showOnCalendar: true,  isOvertimeRate: false },
   { id: 3, name: "OT",    icon: "bolt", color: "#2E7D32", hours: 4,  showOnCalendar: true,  isOvertimeRate: true  },
   { id: 4, name: "Off",   icon: "bed",  color: "#757575", hours: 0,  showOnCalendar: false, isOvertimeRate: false },
 ];

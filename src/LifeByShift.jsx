@@ -574,26 +574,33 @@ export default function LifeByShift() {
     const todayD = new Date();
     todayD.setHours(0,0,0,0);
 
-    let worked=0, scheduled=0, workedIncome=0, scheduledIncome=0;
+    let worked=0, scheduled=0, workedIncome=0, scheduledIncome=0, shifts=0, totalHours=0;
     for (let i = 0; i < 14; i++) {
       const d = new Date(periodStart);
       d.setDate(d.getDate() + i);
-      const sh = schedule[key(d)];
+      const k = key(d);
+      const sh = schedule[k];
       if (sh && sh.showOnCalendar) {
+        const otMult = sh.isOvertimeRate ? settings.otMultiplier : 1;
+        const dayMult = dayRates[k] || 1;
         const rate = sh.isOvertimeRate
           ? settings.hourlyRate * settings.otMultiplier
           : settings.hourlyRate;
+        // shifts: OT 배율 반영 (2x OT = 2 shifts 기준 12h)
+        shifts += (sh.hours * otMult * dayMult) / 12;
+        totalHours += sh.hours * otMult * dayMult;
         scheduled += sh.hours;
-        if (settings.hourlyRate > 0) scheduledIncome += sh.hours * rate;
-        // Only count as "worked" if the day is today or in the past
+        if (settings.hourlyRate > 0) scheduledIncome += sh.hours * rate * dayMult;
         if (d <= todayD) {
           worked += sh.hours;
-          if (settings.hourlyRate > 0) workedIncome += sh.hours * rate;
+          if (settings.hourlyRate > 0) workedIncome += sh.hours * rate * dayMult;
         }
       }
     }
     return {
       periodStart,
+      shifts,
+      totalHours,
       worked,
       scheduled,
       remaining: Math.max(0, 80 - scheduled),
@@ -841,15 +848,12 @@ export default function LifeByShift() {
           })()}
         </div>
         <div style={{ display:"flex",justifyContent:"space-evenly",alignItems:"center" }}>
-          <SummaryTile label="Worked" value={`${summary.worked}h`} icon="✅" color="#2E7D32" />
+          <SummaryTile label="Shifts" value={summary.shifts % 1 === 0 ? summary.shifts : summary.shifts.toFixed(1)} icon="🔄" color="#1565C0" subtitle="this period" />
           <div style={{ width:1,height:38,background:"rgba(0,0,0,0.12)" }} />
-          <SummaryTile label="Scheduled" value={`${summary.scheduled}h`} icon="📋" color="#1565C0" />
-          <div style={{ width:1,height:38,background:"rgba(0,0,0,0.12)" }} />
-          <SummaryTile label="Available" value={`${summary.remaining}h`} icon="➕" color="#E65100" />
+          <SummaryTile label="Hours" value={`${summary.totalHours % 1 === 0 ? summary.totalHours : summary.totalHours.toFixed(1)}h`} icon="🕐" color="#E65100" subtitle="straight pay" />
           {settings.hourlyRate > 0 && <>
             <div style={{ width:1,height:38,background:"rgba(0,0,0,0.12)" }} />
-            <SummaryTile label="Est. Earned" value={`$${Math.round(summary.workedIncome)}`} icon="💵" color="#6A1B9A"
-              subtitle={`of $${Math.round(summary.scheduledIncome)}`} />
+            <SummaryTile label="Est. Income" value={`$${Math.round(summary.scheduledIncome)}`} icon="💵" color="#6A1B9A" subtitle="this period" />
           </>}
         </div>
       </div>

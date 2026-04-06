@@ -45,6 +45,30 @@ function SplashScreen() {
         backgroundSize: "cover",
         backgroundPosition: "center top",
       }} />
+
+      {/* 스피너 */}
+      <div style={{
+        position: "absolute",
+        bottom: "12%",
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 10,
+      }}>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div style={{
+          width: 44,
+          height: 44,
+          borderRadius: "50%",
+          border: "4px solid rgba(255,255,255,0.2)",
+          borderTop: "4px solid #FFD54F",
+          animation: "spin 0.9s linear infinite",
+        }} />
+      </div>
     </div>
   )
 }

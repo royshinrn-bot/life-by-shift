@@ -539,6 +539,8 @@ export default function LifeByShift() {
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [dayRates, setDayRates] = useState(() => loadJSON("lbs_dayRates", {}));
+  const [rateDialog, setRateDialog] = useState(null);
   const [settings, setSettings]   = useState(() => loadSettings());
 
   // ── auto-save ──
@@ -546,6 +548,7 @@ export default function LifeByShift() {
   useEffect(() => { saveJSON("lbs_notes", notes); }, [notes]);
   useEffect(() => { saveJSON("lbs_shiftTypes", shiftTypes); }, [shiftTypes]);
   useEffect(() => { saveJSON("lbs_darkMode", darkMode); }, [darkMode]);
+  useEffect(() => { saveJSON("lbs_dayRates", dayRates); }, [dayRates]);
   useEffect(() => { saveJSON("lbs_settings", {
     ...settings,
     payPeriodStartDate: settings.payPeriodStartDate.toISOString(),
@@ -640,6 +643,19 @@ export default function LifeByShift() {
   function handleCellDblClick(date) {
     const k = key(date);
     if (schedule[k]) setConfirmDialog({date, k});
+  }
+
+  // ── Long press ───────────────────────────────────────────────────────────
+  const longPressTimer = useRef(null);
+  function handleLongPressStart(date) {
+    const k = key(date);
+    if (!schedule[k]) return;
+    longPressTimer.current = setTimeout(() => {
+      setRateDialog(date);
+    }, 600);
+  }
+  function handleLongPressEnd() {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
   }
 
   // ── Drag & drop (mouse) ─────────────────────────────────────────────────
@@ -750,8 +766,17 @@ export default function LifeByShift() {
                   onDrop={e=>{ e.preventDefault(); setHovering(null); if(dragShiftRef.current) dropShift(date,dragShiftRef.current); }}
                   onClick={()=>handleCellClick(date)}
                   onDoubleClick={()=>handleCellDblClick(date)}
+                  onMouseDown={()=>handleLongPressStart(date)}
+                  onMouseUp={handleLongPressEnd}
+                  onMouseLeave={handleLongPressEnd}
+                  onTouchStart={()=>handleLongPressStart(date)}
+                  onTouchEnd={handleLongPressEnd}
                   onContextMenu={e=>{e.preventDefault();setNoteDialog(date);}}
                   style={{ height:68,margin:1.5,borderRadius:8,background:bgCell,border:`${isSel||today?2:1}px solid ${isSel?"#1565C0":today?"#1565C0":isHov?hexOp("#1565C0",0.5):"rgba(0,0,0,0.13)"}`,position:"relative",cursor:"pointer",transition:"all 0.13s",display:"flex",alignItems:"center",justifyContent:"center" }}>
+                  {/* Rate badge */}
+                  {shift && dayRates[k] && dayRates[k] !== 1 && (
+                    <div style={{ position:"absolute",top:2,left:2,background:"#6A1B9A",color:"#fff",fontSize:9,fontWeight:700,padding:"1px 4px",borderRadius:3 }}>{dayRates[k]}x</div>
+                  )}
                   {/* PayDay badge */}
                   {payday && <div style={{ position:"absolute",top:2,right:2,background:"#2E7D32",color:"#fff",fontSize:9,fontWeight:700,padding:"1px 3px",borderRadius:3 }}>$</div>}
                   {/* Note dot */}
@@ -900,10 +925,88 @@ export default function LifeByShift() {
           </div>
         </div>
       )}
+      {rateDialog && (
+        <RateDialog
+          date={rateDialog}
+          currentRate={dayRates[key(rateDialog)] || 1}
+          onClose={()=>setRateDialog(null)}
+          onSave={r=>{
+            const k=key(rateDialog);
+            setDayRates(d=>r===1 ? (({[k]:_,...rest})=>rest)(d) : {...d,[k]:r});
+            setRateDialog(null);
+          }}
+        />
+      )}
       {showSettings && (
         <SettingsSheet settings={settings} shiftTypes={shiftTypes} onClose={()=>setShowSettings(false)}
           onSave={(ns,nst)=>{ setSettings(ns); setShiftTypes(nst); }} />
       )}
+    </div>
+  );
+}
+
+function RateDialog({ date, currentRate, onClose, onSave }) {
+  const [selected, setSelected] = useState(currentRate);
+  const [custom, setCustom] = useState(
+    [1, 1.5, 2].includes(currentRate) ? "" : String(currentRate)
+  );
+  const presets = [
+    { label:"1x", sub:"Regular", value:1 },
+    { label:"1.5x", sub:"Time & Half", value:1.5 },
+    { label:"2x", sub:"Double Time", value:2 },
+  ];
+  const finalRate = custom ? parseFloat(custom) : selected;
+
+  return (
+    <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
+      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:360,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",maxHeight:"90vh",display:"flex",flexDirection:"column" }}>
+        <div style={{ padding:"18px 20px 0" }}>
+          <div style={{ fontWeight:800,fontSize:17,marginBottom:2 }}>Holiday / Special Rate</div>
+          <div style={{ fontSize:13,color:"#888",marginBottom:16 }}>
+            {MONTH_NAMES[date.getMonth()+1]} {date.getDate()} — tap a preset or enter custom
+          </div>
+        </div>
+        <div style={{ padding:"0 20px 20px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:10 }}>
+          {/* 프리셋 버튼 */}
+          <div style={{ display:"flex",gap:8 }}>
+            {presets.map(p=>(
+              <button key={p.value} onClick={()=>{ setSelected(p.value); setCustom(""); }}
+                style={{ flex:1,padding:"10px 4px",borderRadius:12,border:`2px solid ${selected===p.value&&!custom?"#6A1B9A":"#e0e0e0"}`,background:selected===p.value&&!custom?"#F3E5F5":"#f9f9f9",cursor:"pointer",transition:"all 0.15s" }}>
+                <div style={{ fontWeight:800,fontSize:18,color:selected===p.value&&!custom?"#6A1B9A":"#333" }}>{p.label}</div>
+                <div style={{ fontSize:11,color:"#888",marginTop:2 }}>{p.sub}</div>
+              </button>
+            ))}
+          </div>
+          {/* Custom 입력 */}
+          <div style={{ background:"#f5f5f5",borderRadius:12,padding:"12px 14px" }}>
+            <div style={{ fontSize:13,fontWeight:700,color:"#555",marginBottom:6 }}>Custom multiplier</div>
+            <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+              <input
+                type="number" min="1" max="5" step="0.25"
+                placeholder="e.g. 1.75"
+                value={custom}
+                onChange={e=>{ setCustom(e.target.value); setSelected(null); }}
+                style={{ flex:1,padding:"8px 12px",borderRadius:8,border:"1.5px solid #ddd",fontSize:16,outline:"none" }}
+              />
+              <span style={{ fontSize:15,color:"#888" }}>x</span>
+            </div>
+          </div>
+          {/* 미리보기 */}
+          {finalRate && finalRate > 0 && (
+            <div style={{ background:"#EDE7F6",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#4A148C" }}>
+              This shift will be calculated at <strong>{finalRate}x</strong> your hourly rate
+            </div>
+          )}
+          {/* 버튼 */}
+          <div style={{ display:"flex",gap:8,marginTop:4 }}>
+            <button onClick={onClose} style={{ flex:1,padding:"12px",borderRadius:12,border:"1.5px solid #ddd",background:"#f5f5f5",fontWeight:700,fontSize:15,cursor:"pointer" }}>Cancel</button>
+            <button onClick={()=>onSave(finalRate&&finalRate>0?finalRate:1)}
+              style={{ flex:2,padding:"12px",borderRadius:12,border:"none",background:"#6A1B9A",color:"#fff",fontWeight:700,fontSize:15,cursor:"pointer" }}>
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

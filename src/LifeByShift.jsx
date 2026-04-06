@@ -538,6 +538,7 @@ export default function LifeByShift() {
   const [noteDialog, setNoteDialog] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [settings, setSettings]   = useState(() => loadSettings());
 
   // ── auto-save ──
@@ -648,10 +649,10 @@ export default function LifeByShift() {
     <div style={{ fontFamily:"'Segoe UI',system-ui,sans-serif", background:bg, minHeight:"100vh", display:"flex", flexDirection:"column", width:"100%", position:"relative" }}>
       {/* ── Header ── */}
       <div style={{ background:surf, padding:"10px 16px 10px 16px", display:"flex", alignItems:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.07)" }}>
-        <span style={{ fontSize:22,fontWeight:800,color:"#1565C0",letterSpacing:0.5 }}>Life by Shift</span>
-        <span style={{ fontSize:22,marginLeft:4 }}>📈</span>
+        <img src="/app_title.png" style={{ height:32,objectFit:"contain" }} alt="Life by Shift" />
         <div style={{ marginLeft:"auto",display:"flex",gap:2 }}>
           <button onClick={()=>setDarkMode(d=>!d)} style={headerBtn}>{darkMode?"☀️":"🌙"}</button>
+          <button onClick={()=>setShowHelp(true)} style={headerBtn}>❓</button>
           <button onClick={()=>setShowSettings(true)} style={headerBtn}>⚙️</button>
         </div>
       </div>
@@ -843,6 +844,61 @@ export default function LifeByShift() {
           message={`Remove ${schedule[confirmDialog.k]?.name} from ${MONTH_NAMES[confirmDialog.date.getMonth()+1]} ${confirmDialog.date.getDate()}?`}
           onClose={()=>setConfirmDialog(null)}
           onConfirm={()=>setSchedule(s=>{ const n={...s}; delete n[confirmDialog.k]; return n; })} />
+      )}
+      {showHelp && (
+        <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
+          <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:400,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",overflow:"hidden" }}>
+            {/* 헤더 */}
+            <div style={{ background:"#1565C0",padding:"20px 20px 16px" }}>
+              <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+                <div>
+                  <div style={{ color:"#fff",fontWeight:800,fontSize:20 }}>Life by Shift</div>
+                  <div style={{ color:"rgba(255,255,255,0.7)",fontSize:12,marginTop:2,letterSpacing:1 }}>BETA VERSION</div>
+                </div>
+                <button onClick={()=>setShowHelp(false)} style={{ background:"rgba(255,255,255,0.15)",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:18,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center" }}>×</button>
+              </div>
+            </div>
+            {/* 내용 */}
+            <div style={{ padding:"20px 20px 24px",display:"flex",flexDirection:"column",gap:16 }}>
+
+              {/* 베타 안내 */}
+              <div style={{ background:"#FFF8E1",borderRadius:12,padding:"12px 14px",border:"1px solid #FFE082" }}>
+                <div style={{ fontWeight:700,fontSize:13,color:"#F57F17",marginBottom:4 }}>⚠️ Beta Version</div>
+                <div style={{ fontSize:13,color:"#5D4037",lineHeight:1.6 }}>
+                  This app is currently running as a <strong>web app beta</strong>. A native iOS/Android app is coming soon to the App Store.
+                </div>
+              </div>
+
+              {/* 데이터 저장 */}
+              <div style={{ background:"#E3F2FD",borderRadius:12,padding:"12px 14px",border:"1px solid #BBDEFB" }}>
+                <div style={{ fontWeight:700,fontSize:13,color:"#1565C0",marginBottom:4 }}>📱 Your Data</div>
+                <div style={{ fontSize:13,color:"#1A237E",lineHeight:1.6 }}>
+                  Your data is stored <strong>locally on your device only</strong>. Clearing your browser cache will erase your data. We do not store anything on our servers.
+                </div>
+              </div>
+
+              {/* 보안 */}
+              <div style={{ background:"#E8F5E9",borderRadius:12,padding:"12px 14px",border:"1px solid #C8E6C9" }}>
+                <div style={{ fontWeight:700,fontSize:13,color:"#2E7D32",marginBottom:4 }}>🔒 Privacy & Security</div>
+                <div style={{ fontSize:13,color:"#1B5E20",lineHeight:1.6 }}>
+                  <strong>No data collection. No servers. No API keys.</strong> Everything stays on your device. This is one of the safest structures possible for a web app.
+                </div>
+              </div>
+
+              {/* 팁 */}
+              <div style={{ background:"#F3E5F5",borderRadius:12,padding:"12px 14px",border:"1px solid #E1BEE7" }}>
+                <div style={{ fontWeight:700,fontSize:13,color:"#6A1B9A",marginBottom:4 }}>💡 Tip</div>
+                <div style={{ fontSize:13,color:"#4A148C",lineHeight:1.6 }}>
+                  Add this app to your home screen for the best experience! In Safari, tap the Share button and select <strong>"Add to Home Screen"</strong>.
+                </div>
+              </div>
+
+              <button onClick={()=>setShowHelp(false)} style={{ background:"#1565C0",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:15,cursor:"pointer",marginTop:4 }}>
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {showSettings && (
         <SettingsSheet settings={settings} shiftTypes={shiftTypes} onClose={()=>setShowSettings(false)}

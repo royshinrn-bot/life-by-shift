@@ -807,7 +807,7 @@ export default function LifeByShift() {
 
       {/* ── Week labels ── */}
       <div style={{ display:"grid",gridTemplateColumns:"repeat(7,1fr)",padding:"2px 0" }}>
-        {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(l=>(
+        {(settings.weekStartsMonday?["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]).map(l=>(
           <div key={l} style={{ textAlign:"center",fontSize:13,fontWeight:700,color:sub,padding:"2px 0" }}>{l}</div>
         ))}
       </div>

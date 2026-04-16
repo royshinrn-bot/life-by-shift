@@ -83,14 +83,11 @@ const Icons = {
   coffee: "☕", heart: "❤️", home: "🏠", money: "💵", clock: "🕐",
   medical: "🏥", school: "🎓",
 };
-function renderIcon(icon) {
-  return renderIcon(icon) || icon || "⭐";
-}
 
 // ── Default shift types ───────────────────────────────────────────────────
 const defaultShiftTypes = () => [
-  { id: 1, name: "Day",   icon: "sun",  color: "#FF8F00", hours: 12, showOnCalendar: true,  isOvertimeRate: false },
-  { id: 2, name: "Night", icon: "moon", color: "#3949AB", hours: 12, showOnCalendar: true,  isOvertimeRate: false },
+  { id: 1, name: "Day",   icon: "sun",  color: "#FF8F00", hours: 12,  showOnCalendar: true,  isOvertimeRate: false },
+  { id: 2, name: "Night", icon: "moon", color: "#3949AB", hours: 12,  showOnCalendar: true,  isOvertimeRate: false },
   { id: 3, name: "OT",    icon: "bolt", color: "#2E7D32", hours: 4,  showOnCalendar: true,  isOvertimeRate: true  },
   { id: 4, name: "Off",   icon: "bed",  color: "#757575", hours: 0,  showOnCalendar: false, isOvertimeRate: false },
 ];
@@ -119,12 +116,6 @@ const ICON_OPTIONS = [
   { name: "Heart", key: "heart" }, { name: "Home", key: "home" },
   { name: "Money", key: "money" }, { name: "Clock", key: "clock" },
   { name: "Medical", key: "medical" }, { name: "School", key: "school" },
-];
-
-const EMOJI_LIST = [
-  "☀️","🌙","⚡","🛏️","⭐","☕","❤️","🏠","💵","🕐","🏥","🎓",
-  "🚒","👮","💊","🩺","🔥","💪","🎯","📋","🚑","⚙️","🌟","💉",
-  "🏋️","🌿","🎵","✈️","🍎","💤","🧠","🛡️","⚓","🎖️","🔑","🌈",
 ];
 
 function key(d) { return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
@@ -199,7 +190,6 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
   const [hours, setHours] = useState(shift.hours);
   const [showOnCalendar, setShowOnCalendar] = useState(shift.showOnCalendar);
   const [isOvertimeRate, setIsOvertimeRate] = useState(shift.isOvertimeRate);
-  const [iconTab, setIconTab] = useState(EMOJI_LIST.includes(icon) || !Object.keys(Icons).includes(icon) ? "emoji" : "preset");
 
   return (
     <Modal
@@ -212,7 +202,7 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
     >
       {/* Preview */}
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", marginBottom:16 }}>
-        <div style={{ width:60,height:60,borderRadius:16,background:hexOp(color,0.15),border:`2.5px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28 }}>{renderIcon(icon)}</div>
+        <div style={{ width:60,height:60,borderRadius:16,background:hexOp(color,0.15),border:`2.5px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28 }}>{Icons[icon]}</div>
         <div style={{ marginTop:6, fontWeight:700, color, fontSize:17 }}>{name||"—"}</div>
       </div>
       {/* Name */}
@@ -221,43 +211,14 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
         style={{ ...inputStyle, marginBottom:14 }} />
       {/* Icon */}
       <label style={labelStyle}>Icon</label>
-      <div style={{ display:"flex",gap:6,marginBottom:8 }}>
-        {[["preset","Preset"],["emoji","Emoji"]].map(([t,l])=>(
-          <button key={t} onClick={()=>setIconTab(t)}
-            style={{ flex:1,padding:"6px",borderRadius:8,border:`2px solid ${iconTab===t?color:"#e0e0e0"}`,background:iconTab===t?hexOp(color,0.15):"#f9f9f9",fontWeight:iconTab===t?700:400,color:iconTab===t?color:"#555",cursor:"pointer",fontSize:13 }}>
-            {l}
+      <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
+        {ICON_OPTIONS.map(opt => (
+          <button key={opt.key} onClick={()=>setIcon(opt.key)}
+            style={{ width:40,height:40,borderRadius:10,border:`2px solid ${icon===opt.key?color:"transparent"}`,background:icon===opt.key?hexOp(color,0.2):"#f0f0f0",fontSize:20,cursor:"pointer",transition:"all 0.12s" }}>
+            {Icons[opt.key]}
           </button>
         ))}
       </div>
-      {iconTab==="preset" ? (
-        <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
-          {ICON_OPTIONS.map(opt => (
-            <button key={opt.key} onClick={()=>setIcon(opt.key)}
-              style={{ width:40,height:40,borderRadius:10,border:`2px solid ${icon===opt.key?color:"transparent"}`,background:icon===opt.key?hexOp(color,0.2):"#f0f0f0",fontSize:20,cursor:"pointer",transition:"all 0.12s" }}>
-              {renderIcon(opt.key)}
-            </button>
-          ))}
-        </div>
-      ) : (
-        <div style={{ marginBottom:14 }}>
-          <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
-            {EMOJI_LIST.map(em => (
-              <button key={em} onClick={()=>setIcon(em)}
-                style={{ width:40,height:40,borderRadius:10,border:`2px solid ${icon===em?color:"transparent"}`,background:icon===em?hexOp(color,0.2):"#f0f0f0",fontSize:22,cursor:"pointer",transition:"all 0.12s" }}>
-                {em}
-              </button>
-            ))}
-          </div>
-          <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-            <input placeholder="Or paste any emoji..." value={EMOJI_LIST.includes(icon)||Object.keys(Icons).includes(icon)?"":icon}
-              onChange={e=>setIcon(e.target.value)}
-              style={{ flex:1,padding:"8px 10px",borderRadius:8,border:"1.5px solid #ddd",fontSize:20,outline:"none" }} />
-            <div style={{ width:40,height:40,borderRadius:10,background:hexOp(color,0.15),border:`2px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22 }}>
-              {icon}
-            </div>
-          </div>
-        </div>
-      )}
       {/* Show on Calendar */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
         <span style={{ fontWeight:700, fontSize:15 }}>Show on Calendar</span>
@@ -302,32 +263,12 @@ function Toggle({ value, onChange, color="#1565C0" }) {
 // ── OT Hours Dialog ───────────────────────────────────────────────────────
 function OTDialog({ date, shift, onConfirm, onClose }) {
   const [hours, setHours] = useState(shift.hours);
-  const [mult, setMult] = useState(1.5);
-  const [customMult, setCustomMult] = useState("");
-  const finalMult = customMult ? parseFloat(customMult) : mult;
   return (
-    <Modal title={<span style={{display:"flex",alignItems:"center",gap:8}}><span>{renderIcon(shift.icon)}</span> OT Hours</span>} onClose={onClose}
+    <Modal title={<span style={{display:"flex",alignItems:"center",gap:8}}><span>{Icons[shift.icon]}</span> OT Hours</span>} onClose={onClose}
       actions={[
         <button key="c" onClick={onClose} style={btnOutline}>Cancel</button>,
-        <button key="ok" onClick={()=>{ playCoinSound(); onConfirm(hours, finalMult); onClose(); }} style={{...btnFilled,background:shift.color}}>Confirm</button>
+        <button key="ok" onClick={()=>{ playCoinSound(); onConfirm(hours); onClose(); }} style={{...btnFilled,background:shift.color}}>Confirm</button>
       ]}>
-      <div style={{ marginBottom:14 }}>
-        <div style={{ fontWeight:700,fontSize:14,marginBottom:8,color:"#555" }}>OT Multiplier</div>
-        <div style={{ display:"flex",gap:6,marginBottom:8 }}>
-          {[[1.25,"1.25x"],[1.5,"1.5x"],[2.0,"2x"]].map(([v,l])=>(
-            <button key={v} onClick={()=>{ setMult(v); setCustomMult(""); }}
-              style={{ flex:1,padding:"8px 4px",borderRadius:10,border:`2px solid ${mult===v&&!customMult?shift.color:"#e0e0e0"}`,background:mult===v&&!customMult?"#f3e5f5":"#f9f9f9",fontWeight:mult===v&&!customMult?700:400,color:mult===v&&!customMult?shift.color:"#555",cursor:"pointer",fontSize:13 }}>
-              {l}
-            </button>
-          ))}
-        </div>
-        <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-          <input type="number" min="1" max="5" step="0.05" placeholder="Custom (e.g. 1.75)"
-            value={customMult} onChange={e=>{ setCustomMult(e.target.value); setMult(null); }}
-            style={{ flex:1,padding:"8px 10px",borderRadius:8,border:"1.5px solid #ddd",fontSize:14,outline:"none" }} />
-          <span style={{ color:"#888",fontSize:13 }}>x</span>
-        </div>
-      </div>
       <div style={{ textAlign:"center", color:"#9E9E9E", marginBottom:16 }}>
         {MONTH_NAMES[date.getMonth()+1]} {date.getDate()}, {date.getFullYear()}
       </div>
@@ -497,7 +438,7 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
                 <div style={{ background:hexOp("#6A1B9A",0.08),border:`1px solid ${hexOp("#6A1B9A",0.3)}`,borderRadius:10,padding:14 }}>
                   {shifts.filter(sh=>sh.showOnCalendar&&sh.hours>0).map(sh=>(
                     <div key={sh.id} style={{ display:"flex",alignItems:"center",padding:"3px 0" }}>
-                      <span style={{ marginRight:6 }}>{renderIcon(sh.icon)}</span>
+                      <span style={{ marginRight:6 }}>{Icons[sh.icon]}</span>
                       <span style={{ fontWeight:700,color:sh.color,fontSize:15 }}>{sh.name}</span>
                       <span style={{ color:"#999",fontSize:14,marginLeft:4 }}>({sh.hours}h)</span>
                       <span style={{ marginLeft:"auto",fontWeight:700,fontSize:15 }}>
@@ -520,7 +461,7 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
               <p style={{ fontSize:14,color:"#777",margin:"2px 0 14px" }}>Tap to edit · Swipe or tap 🗑️ to delete · Max 8 types.</p>
               {shifts.map((sh,i)=>(
                 <div key={sh.id||i} style={{ display:"flex",alignItems:"center",background:"#fff",border:"1.5px solid #eee",borderRadius:12,padding:"10px 12px",marginBottom:10,gap:12,boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
-                  <div style={{ width:44,height:44,borderRadius:10,background:hexOp(sh.color,0.15),border:`2px solid ${sh.color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{renderIcon(sh.icon)}</div>
+                  <div style={{ width:44,height:44,borderRadius:10,background:hexOp(sh.color,0.15),border:`2px solid ${sh.color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{Icons[sh.icon]}</div>
                   <div style={{ flex:1, cursor:"pointer" }} onClick={()=>setEditingShift(i)}>
                     <div style={{ fontWeight:700,fontSize:16 }}>{sh.name}</div>
                     <div style={{ fontSize:13,color:"#777" }}>{sh.showOnCalendar ? `${sh.hours}h${sh.isOvertimeRate?" · OT Rate":""}` : "Clears calendar entry"}</div>
@@ -579,7 +520,6 @@ const iconBtn = { background:"none",border:"none",fontSize:28,cursor:"pointer",p
 export default function LifeByShift() {
   const now = new Date();
 
-  // ── localStorage helpers ──
   function loadJSON(key, fallback) {
     try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; }
   }
@@ -594,21 +534,21 @@ export default function LifeByShift() {
       payDayOfMonth: 15, payDayAnchor: new Date(now.getFullYear(), now.getMonth(), 1),
       hourlyRate: 0, otMultiplier: 1.5, weekStartsMonday: false, defaultShiftHours: 12,
     };
-    return { ...s, weekStartsMonday: s.weekStartsMonday ?? false, defaultShiftHours: s.defaultShiftHours ?? 12,
+    return { ...s,
       payPeriodStartDate: new Date(s.payPeriodStartDate),
       payDayAnchor: new Date(s.payDayAnchor),
+      weekStartsMonday: s.weekStartsMonday ?? false,
+      defaultShiftHours: s.defaultShiftHours ?? 12,
     };
-  }
-  function loadShiftTypes() {
-    return loadJSON("lbs_shiftTypes", null) || defaultShiftTypes();
   }
 
   const [darkMode, setDarkMode]   = useState(() => loadJSON("lbs_darkMode", false));
   const [month, setMonth]         = useState(new Date(now.getFullYear(), now.getMonth()));
   const [schedule, setSchedule]   = useState(() => loadJSON("lbs_schedule", {}));
   const [notes, setNotes]         = useState(() => loadJSON("lbs_notes", {}));
+  const [dayRates, setDayRates]   = useState(() => loadJSON("lbs_dayRates", {}));
   const [selectedDate, setSelectedDate] = useState(null);
-  const [shiftTypes, setShiftTypes] = useState(() => loadShiftTypes());
+  const [shiftTypes, setShiftTypes] = useState(() => loadJSON("lbs_shiftTypes", null) || defaultShiftTypes());
   const [dragging, setDragging]   = useState(null);
   const [selectedShift, setSelectedShift] = useState(null);
   const [hovering, setHovering]   = useState(null);
@@ -616,34 +556,24 @@ export default function LifeByShift() {
   const [noteDialog, setNoteDialog] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [firstLaunch, setFirstLaunch] = useState(() => !loadJSON("lbs_launched", false));
-  const [showQR, setShowQR] = useState(false);
-  const [sharedView, setSharedView] = useState(() => {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const s = params.get("shared");
-      if (!s) return null;
-      return JSON.parse(decodeURIComponent(escape(atob(s))));
-    } catch { return null; }
-  });
-  const [dayRates, setDayRates] = useState(() => loadJSON("lbs_dayRates", {}));
+  const [showHelp, setShowHelp]   = useState(false);
   const [rateDialog, setRateDialog] = useState(null);
-  const [settings, setSettings]   = useState(() => loadSettings());
+  const [firstLaunch, setFirstLaunch] = useState(() => !loadJSON("lbs_launched", false));
+  const [settings, setSettings]   = useState(loadSettings);
 
-  // ── auto-save ──
   useEffect(() => { saveJSON("lbs_schedule", schedule); }, [schedule]);
   useEffect(() => { saveJSON("lbs_notes", notes); }, [notes]);
   useEffect(() => { saveJSON("lbs_shiftTypes", shiftTypes); }, [shiftTypes]);
-
   useEffect(() => { saveJSON("lbs_darkMode", darkMode); }, [darkMode]);
   useEffect(() => { saveJSON("lbs_dayRates", dayRates); }, [dayRates]);
   useEffect(() => { if (!firstLaunch) saveJSON("lbs_launched", true); }, [firstLaunch]);
-  useEffect(() => { saveJSON("lbs_settings", {
-    ...settings,
-    payPeriodStartDate: settings.payPeriodStartDate.toISOString(),
-    payDayAnchor: settings.payDayAnchor.toISOString(),
-  }); }, [settings]);
+  useEffect(() => {
+    saveJSON("lbs_settings", {
+      ...settings,
+      payPeriodStartDate: settings.payPeriodStartDate.toISOString(),
+      payDayAnchor: settings.payDayAnchor.toISOString(),
+    });
+  }, [settings]);
 
   const bg   = darkMode ? "#1a1a2e" : "#f5f7fa";
   const surf = darkMode ? "#16213e"  : "#ffffff";
@@ -668,15 +598,13 @@ export default function LifeByShift() {
     for (let i = 0; i < 14; i++) {
       const d = new Date(periodStart);
       d.setDate(d.getDate() + i);
-      const k = key(d);
-      const sh = schedule[k];
+      const sh = schedule[key(d)];
       if (sh && sh.showOnCalendar) {
-        const otMult = sh.isOvertimeRate ? (sh.otCustomMult || settings.otMultiplier) : 1;
-        const dayMult = dayRates[k] || 1;
         const rate = sh.isOvertimeRate
-          ? settings.hourlyRate * (sh.otCustomMult || settings.otMultiplier)
+          ? settings.hourlyRate * settings.otMultiplier
           : settings.hourlyRate;
-        // shifts: OT 배율 반영 (2x OT = 2 shifts 기준 12h)
+        const otMult = sh.isOvertimeRate ? settings.otMultiplier : 1;
+        const dayMult = dayRates[key(d)] || 1;
         shifts += (sh.hours * otMult * dayMult) / 12;
         totalHours += sh.hours * otMult * dayMult;
         scheduled += sh.hours;
@@ -689,10 +617,10 @@ export default function LifeByShift() {
     }
     return {
       periodStart,
-      shifts,
-      totalHours,
       worked,
       scheduled,
+      shifts: Math.round(shifts*10)/10,
+      totalHours: Math.round(totalHours*10)/10,
       remaining: Math.max(0, 80 - scheduled),
       workedIncome,
       scheduledIncome,
@@ -707,8 +635,6 @@ export default function LifeByShift() {
   const summary = calcPeriodSummary(selectedDate || today);
 
   const weeks = calendarWeeks(month, settings.weekStartsMonday);
-  const displaySchedule = sharedView ? sharedView.schedule : schedule;
-  const displayShiftTypes = sharedView ? sharedView.shiftTypes : shiftTypes;
 
   function dropShift(date, shift) {
     const k = key(date);
@@ -744,19 +670,6 @@ export default function LifeByShift() {
     if (schedule[k]) setConfirmDialog({date, k});
   }
 
-  // ── Long press ───────────────────────────────────────────────────────────
-  const longPressTimer = useRef(null);
-  function handleLongPressStart(date) {
-    const k = key(date);
-    if (!schedule[k]) return;
-    longPressTimer.current = setTimeout(() => {
-      setRateDialog(date);
-    }, 600);
-  }
-  function handleLongPressEnd() {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-  }
-
   // ── Drag & drop (mouse) ─────────────────────────────────────────────────
   const dragShiftRef = useRef(null);
 
@@ -767,45 +680,21 @@ export default function LifeByShift() {
         <img src="/app_title.png" style={{ height:32,objectFit:"contain" }} alt="Life by Shift" />
         <div style={{ marginLeft:"auto",display:"flex",gap:2 }}>
           <button onClick={()=>setDarkMode(d=>!d)} style={headerBtn}>{darkMode?"☀️":"🌙"}</button>
-          <button onClick={()=>setShowQR(true)} style={headerBtn}>📤</button>
           <button onClick={()=>setShowHelp(true)} style={headerBtn}>❓</button>
           <button onClick={()=>setShowSettings(true)} style={headerBtn}>⚙️</button>
         </div>
       </div>
 
-      {/* ── Shared view banner ── */}
-      {sharedView && (
-        <div style={{ background:"#1565C0",color:"#fff",padding:"8px 16px",fontSize:13,display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-          <span>👁️ Viewing shared schedule (read-only)</span>
-          <button onClick={()=>{ setSharedView(null); window.history.replaceState({},"",window.location.pathname); }}
-            style={{ background:"rgba(255,255,255,0.2)",border:"none",borderRadius:8,color:"#fff",padding:"3px 10px",cursor:"pointer",fontSize:12,fontWeight:700 }}>
-            Exit
-          </button>
-        </div>
-      )}
-
-      {/* ── First launch cue ── */}
       {firstLaunch && (
         <div onClick={()=>{ setFirstLaunch(false); setShowSettings(true); }}
-          style={{ position:"fixed",inset:0,zIndex:50,background:"rgba(0,0,0,0.55)",display:"flex",flexDirection:"column",alignItems:"flex-end",justifyContent:"flex-start",paddingTop:8,paddingRight:16,cursor:"pointer" }}>
-          <style>{`
-            @keyframes bounce {
-              0%,100% { transform: translateY(0); }
-              50% { transform: translateY(-10px); }
-            }
-            @keyframes fadeIn {
-              from { opacity:0; } to { opacity:1; }
-            }
-          `}</style>
-          <div style={{ animation:"fadeIn 0.4s ease", display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginTop:4 }}>
-            <div style={{ animation:"bounce 0.9s ease infinite",fontSize:32 }}>👆</div>
-            <div style={{ background:"#FFD54F",color:"#333",fontWeight:800,fontSize:14,padding:"8px 16px",borderRadius:20,textAlign:"center",lineHeight:1.4 }}>
-              Tap here to set up<br/>your schedule!
-            </div>
+          style={{ position:"fixed",inset:0,zIndex:50,background:"rgba(0,0,0,0.55)",cursor:"pointer" }}>
+          <style>{`@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}`}</style>
+          <div style={{ position:"absolute",top:44,right:0,display:"flex",flexDirection:"column",alignItems:"center",gap:4 }}>
+            <div style={{ animation:"bounce 0.9s ease infinite",fontSize:18 }}>👆</div>
+            <div style={{ background:"#FFD54F",color:"#333",fontWeight:800,fontSize:11,padding:"5px 10px",borderRadius:12,textAlign:"center",lineHeight:1.4,whiteSpace:"nowrap" }}>Tap to set up!</div>
           </div>
         </div>
       )}
-
       {/* ── Shift Palette ── */}
       <div style={{ background:surf,boxShadow:"0 2px 6px rgba(0,0,0,0.06)",overflowX:"auto" }}>
         <div style={{ display:"flex",padding:"10px 8px",gap:0,minWidth:"max-content",width:"100%" }}>
@@ -832,7 +721,7 @@ export default function LifeByShift() {
                 boxShadow: selectedShift===shift ? `0 0 0 3px ${hexOp(shift.color,0.35)}` : "none",
                 transition:"all 0.15s",
               }}>
-                {renderIcon(shift.icon)}
+                {Icons[shift.icon]}
               </div>
               <span style={{ fontSize:12,fontWeight:700,color:selectedShift===shift?"#fff":shift.color,marginTop:4,whiteSpace:"nowrap",
                 background: selectedShift===shift ? shift.color : "transparent",
@@ -881,7 +770,7 @@ export default function LifeByShift() {
               const inMonth = date.getMonth()===month.getMonth();
               const today   = isToday(date);
               const payday  = isPayDay(date,settings);
-              const shift   = displaySchedule[k];
+              const shift   = schedule[k];
               const band    = payBand(date,settings.payPeriodStartDate);
               const hasNote = !!(notes[k]);
               const isSel   = selectedDate && key(selectedDate)===k;
@@ -899,17 +788,14 @@ export default function LifeByShift() {
                   onDrop={e=>{ e.preventDefault(); setHovering(null); if(dragShiftRef.current) dropShift(date,dragShiftRef.current); }}
                   onClick={()=>handleCellClick(date)}
                   onDoubleClick={()=>handleCellDblClick(date)}
-                  onMouseDown={()=>handleLongPressStart(date)}
-                  onMouseUp={handleLongPressEnd}
-                  onMouseLeave={handleLongPressEnd}
-                  onTouchStart={()=>handleLongPressStart(date)}
-                  onTouchEnd={handleLongPressEnd}
+                  onMouseDown={()=>{ if(schedule[k]) { const t=setTimeout(()=>setRateDialog(date),600); window._lpt=t; } }}
+                  onMouseUp={()=>clearTimeout(window._lpt)}
+                  onMouseLeave={()=>clearTimeout(window._lpt)}
+                  onTouchStart={()=>{ if(schedule[k]) { const t=setTimeout(()=>setRateDialog(date),600); window._lpt=t; } }}
+                  onTouchEnd={()=>clearTimeout(window._lpt)}
                   onContextMenu={e=>{e.preventDefault();setNoteDialog(date);}}
                   style={{ height:68,margin:1.5,borderRadius:8,background:bgCell,border:`${isSel||today?2:1}px solid ${isSel?"#1565C0":today?"#1565C0":isHov?hexOp("#1565C0",0.5):"rgba(0,0,0,0.13)"}`,position:"relative",cursor:"pointer",transition:"all 0.13s",display:"flex",alignItems:"center",justifyContent:"center" }}>
-                  {/* Rate badge */}
-                  {shift && dayRates[k] && dayRates[k] !== 1 && (
-                    <div style={{ position:"absolute",top:2,left:2,background:"#6A1B9A",color:"#fff",fontSize:9,fontWeight:700,padding:"1px 4px",borderRadius:3 }}>{dayRates[k]}x</div>
-                  )}
+                  {dayRates[k] && dayRates[k]!==1 && <div style={{ position:"absolute",top:2,left:2,background:"#6A1B9A",color:"#fff",fontSize:9,fontWeight:700,padding:"1px 4px",borderRadius:3 }}>{dayRates[k]}x</div>}
                   {/* PayDay badge */}
                   {payday && <div style={{ position:"absolute",top:2,right:2,background:"#2E7D32",color:"#fff",fontSize:9,fontWeight:700,padding:"1px 3px",borderRadius:3 }}>$</div>}
                   {/* Note dot */}
@@ -919,7 +805,7 @@ export default function LifeByShift() {
                       <span style={{ fontSize:14,fontWeight:today?700:400,color:today?"#fff":inMonth?(darkMode?"#e0e0e0":"#212121"):"#bbb" }}>{date.getDate()}</span>
                     </div>
                     {shift && shift.showOnCalendar && <>
-                      <span style={{ fontSize:14 }}>{renderIcon(shift.icon)}</span>
+                      <span style={{ fontSize:14 }}>{Icons[shift.icon]}</span>
                       <span style={{ fontSize:9,fontWeight:700,color:shift.color }}>{shift.name}</span>
                     </>}
                   </div>
@@ -974,9 +860,9 @@ export default function LifeByShift() {
           })()}
         </div>
         <div style={{ display:"flex",justifyContent:"space-evenly",alignItems:"center" }}>
-          <SummaryTile label="Shifts" value={summary.shifts % 1 === 0 ? summary.shifts : summary.shifts.toFixed(1)} icon="🔄" color="#1565C0" subtitle="this period" />
+          <SummaryTile label="Shifts" value={summary.shifts%1===0?summary.shifts:summary.shifts.toFixed(1)} icon="🔄" color="#1565C0" subtitle="this period" />
           <div style={{ width:1,height:38,background:"rgba(0,0,0,0.12)" }} />
-          <SummaryTile label="Hours" value={`${summary.totalHours % 1 === 0 ? summary.totalHours : summary.totalHours.toFixed(1)}h`} icon="🕐" color="#E65100" subtitle="straight pay" />
+          <SummaryTile label="Hours" value={`${summary.totalHours%1===0?summary.totalHours:summary.totalHours.toFixed(1)}h`} icon="🕐" color="#E65100" subtitle="straight pay" />
           {settings.hourlyRate > 0 && <>
             <div style={{ width:1,height:38,background:"rgba(0,0,0,0.12)" }} />
             <SummaryTile label="Est. Income" value={`$${Math.round(summary.scheduledIncome)}`} icon="💵" color="#6A1B9A" subtitle="this period" />
@@ -987,7 +873,7 @@ export default function LifeByShift() {
       {/* ── Dialogs ── */}
       {otDialog && (
         <OTDialog date={otDialog.date} shift={otDialog.shift} onClose={()=>setOtDialog(null)}
-          onConfirm={(h,m)=>{ const k=key(otDialog.date); setSchedule(s=>({...s,[k]:{...otDialog.shift,hours:h,otCustomMult:m}})); playCoinSound(); }} />
+          onConfirm={h=>{ const k=key(otDialog.date); setSchedule(s=>({...s,[k]:{...otDialog.shift,hours:h}})); playCoinSound(); }} />
       )}
       {noteDialog && (
         <NoteDialog date={noteDialog} note={notes[key(noteDialog)]||""} onClose={()=>setNoteDialog(null)}
@@ -1002,74 +888,44 @@ export default function LifeByShift() {
       )}
       {showHelp && (
         <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
-          <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:400,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",overflow:"hidden",maxHeight:"90vh",display:"flex",flexDirection:"column" }}>
-            {/* 헤더 */}
+          <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:400,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",maxHeight:"90vh",display:"flex",flexDirection:"column" }}>
             <div style={{ background:"#1565C0",padding:"20px 20px 16px" }}>
               <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
                 <div>
                   <div style={{ color:"#fff",fontWeight:800,fontSize:20 }}>Life by Shift</div>
                   <div style={{ color:"rgba(255,255,255,0.7)",fontSize:12,marginTop:2,letterSpacing:1 }}>BETA VERSION</div>
                 </div>
-                <button onClick={()=>setShowHelp(false)} style={{ background:"rgba(255,255,255,0.15)",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:18,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center" }}>×</button>
+                <button onClick={()=>setShowHelp(false)} style={{ background:"rgba(255,255,255,0.15)",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:18,color:"#fff" }}>×</button>
               </div>
             </div>
-            {/* 내용 */}
-            <div style={{ padding:"20px 20px 24px",display:"flex",flexDirection:"column",gap:16,overflowY:"auto" }}>
-
-              {/* 베타 안내 */}
+            <div style={{ padding:"20px 20px 24px",display:"flex",flexDirection:"column",gap:14,overflowY:"auto",flex:1 }}>
               <div style={{ background:"#FFF8E1",borderRadius:12,padding:"12px 14px",border:"1px solid #FFE082" }}>
                 <div style={{ fontWeight:700,fontSize:13,color:"#F57F17",marginBottom:4 }}>⚠️ Beta Version</div>
-                <div style={{ fontSize:13,color:"#5D4037",lineHeight:1.6 }}>
-                  This app is currently running as a <strong>web app beta</strong>. A native iOS/Android app is coming soon to the App Store.
-                </div>
+                <div style={{ fontSize:13,color:"#5D4037",lineHeight:1.6 }}>This app is currently running as a <strong>web app beta</strong>. A native iOS/Android app is coming soon.</div>
               </div>
-
-              {/* 데이터 저장 */}
               <div style={{ background:"#E3F2FD",borderRadius:12,padding:"12px 14px",border:"1px solid #BBDEFB" }}>
                 <div style={{ fontWeight:700,fontSize:13,color:"#1565C0",marginBottom:4 }}>📱 Your Data</div>
-                <div style={{ fontSize:13,color:"#1A237E",lineHeight:1.6 }}>
-                  Your data is stored <strong>locally on your device only</strong>. Clearing your browser cache will erase your data. We do not store anything on our servers.
-                </div>
+                <div style={{ fontSize:13,color:"#1A237E",lineHeight:1.6 }}>Your data is stored <strong>locally on your device only</strong>. Clearing your browser cache will erase your data.</div>
               </div>
-
-              {/* 보안 */}
               <div style={{ background:"#E8F5E9",borderRadius:12,padding:"12px 14px",border:"1px solid #C8E6C9" }}>
                 <div style={{ fontWeight:700,fontSize:13,color:"#2E7D32",marginBottom:4 }}>🔒 Privacy & Security</div>
-                <div style={{ fontSize:13,color:"#1B5E20",lineHeight:1.6 }}>
-                  <strong>No data collection. No servers. No API keys.</strong> Everything stays on your device. This is one of the safest structures possible for a web app.
-                </div>
+                <div style={{ fontSize:13,color:"#1B5E20",lineHeight:1.6 }}><strong>No data collection. No servers. No API keys.</strong> Everything stays on your device.</div>
               </div>
-
-              {/* 팁 */}
               <div style={{ background:"#F3E5F5",borderRadius:12,padding:"12px 14px",border:"1px solid #E1BEE7" }}>
                 <div style={{ fontWeight:700,fontSize:13,color:"#6A1B9A",marginBottom:4 }}>💡 Tip</div>
-                <div style={{ fontSize:13,color:"#4A148C",lineHeight:1.6 }}>
-                  Add this app to your home screen for the best experience! In Safari, tap the Share button and select <strong>"Add to Home Screen"</strong>.
-                </div>
+                <div style={{ fontSize:13,color:"#4A148C",lineHeight:1.6 }}>Add this app to your home screen! In Safari, tap Share → <strong>"Add to Home Screen"</strong>.</div>
               </div>
-
-              <button onClick={()=>setShowHelp(false)} style={{ background:"#1565C0",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:15,cursor:"pointer",marginTop:4 }}>
-                Got it!
-              </button>
+              <button onClick={()=>setShowHelp(false)} style={{ background:"#1565C0",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:15,cursor:"pointer" }}>Got it!</button>
             </div>
           </div>
         </div>
       )}
-      {showQR && (
-        <QRShareModal schedule={schedule} shiftTypes={shiftTypes} onClose={()=>setShowQR(false)} />
-      )}
+
       {rateDialog && (
-        <RateDialog
-          date={rateDialog}
-          currentRate={dayRates[key(rateDialog)] || 1}
-          onClose={()=>setRateDialog(null)}
-          onSave={r=>{
-            const k=key(rateDialog);
-            setDayRates(d=>r===1 ? (({[k]:_,...rest})=>rest)(d) : {...d,[k]:r});
-            setRateDialog(null);
-          }}
-        />
+        <RateDialog date={rateDialog} currentRate={dayRates[key(rateDialog)]||1} onClose={()=>setRateDialog(null)}
+          onSave={r=>{ const k=key(rateDialog); setDayRates(d=>r===1?(({[k]:_,...rest})=>rest)(d):{...d,[k]:r}); setRateDialog(null); }} />
       )}
+
       {showSettings && (
         <SettingsSheet settings={settings} shiftTypes={shiftTypes} onClose={()=>setShowSettings(false)}
           onSave={(ns,nst)=>{
@@ -1085,118 +941,40 @@ export default function LifeByShift() {
   );
 }
 
-function QRShareModal({ schedule, shiftTypes, onClose }) {
-  const [qrUrl, setQrUrl] = useState(null);
-  const [copied, setCopied] = useState(false);
-
-  useEffect(() => {
-    const data = { schedule, shiftTypes };
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-    const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${encoded}`;
-    const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
-    setQrUrl(qr);
-  }, []);
-
-  function copyLink() {
-    const data = { schedule, shiftTypes };
-    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-    const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${encoded}`;
-    navigator.clipboard.writeText(shareUrl).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2000); });
-  }
-
-  return (
-    <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
-      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:360,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",maxHeight:"90vh",display:"flex",flexDirection:"column" }}>
-        <div style={{ padding:"18px 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-          <div style={{ fontWeight:800,fontSize:17 }}>📤 Share My Schedule</div>
-          <button onClick={onClose} style={{ background:"#f0f0f0",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:18 }}>×</button>
-        </div>
-        <div style={{ padding:"16px 20px 24px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:16 }}>
-          <div style={{ fontSize:13,color:"#888",textAlign:"center",lineHeight:1.5 }}>
-            Show this QR code to someone with Life by Shift — they can scan it to view your schedule!
-          </div>
-          {qrUrl ? (
-            <div style={{ padding:12,background:"#f9f9f9",borderRadius:16,border:"1px solid #eee" }}>
-              <img src={qrUrl} width={200} height={200} alt="QR Code" style={{ display:"block" }} />
-            </div>
-          ) : (
-            <div style={{ width:200,height:200,background:"#f0f0f0",borderRadius:16,display:"flex",alignItems:"center",justifyContent:"center",color:"#aaa",fontSize:13 }}>Generating...</div>
-          )}
-          <div style={{ background:"#E8F5E9",borderRadius:12,padding:"10px 14px",fontSize:12,color:"#2E7D32",textAlign:"center",lineHeight:1.5 }}>
-            🔒 Read-only. No account needed. No data sent to any server.
-          </div>
-          <button onClick={copyLink}
-            style={{ width:"100%",padding:"12px",borderRadius:12,border:"none",background:copied?"#2E7D32":"#1565C0",color:"#fff",fontWeight:700,fontSize:15,cursor:"pointer",transition:"background 0.2s" }}>
-            {copied ? "✅ Link Copied!" : "📋 Copy Link Instead"}
-          </button>
-          <button onClick={onClose} style={{ width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #ddd",background:"#f5f5f5",fontWeight:700,fontSize:15,cursor:"pointer" }}>
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function RateDialog({ date, currentRate, onClose, onSave }) {
   const [selected, setSelected] = useState(currentRate);
-  const [custom, setCustom] = useState(
-    [1, 1.5, 2].includes(currentRate) ? "" : String(currentRate)
-  );
-  const presets = [
-    { label:"1x", sub:"Regular", value:1 },
-    { label:"1.5x", sub:"Time & Half", value:1.5 },
-    { label:"2x", sub:"Double Time", value:2 },
-  ];
+  const [custom, setCustom] = useState([1,1.5,2].includes(currentRate)?"":String(currentRate));
   const finalRate = custom ? parseFloat(custom) : selected;
-
   return (
     <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
       <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:360,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",maxHeight:"90vh",display:"flex",flexDirection:"column" }}>
         <div style={{ padding:"18px 20px 0" }}>
           <div style={{ fontWeight:800,fontSize:17,marginBottom:2 }}>Holiday / Special Rate</div>
-          <div style={{ fontSize:13,color:"#888",marginBottom:16 }}>
-            {MONTH_NAMES[date.getMonth()+1]} {date.getDate()} — tap a preset or enter custom
-          </div>
+          <div style={{ fontSize:13,color:"#888",marginBottom:16 }}>{MONTH_NAMES[date.getMonth()+1]} {date.getDate()} — select a rate multiplier</div>
         </div>
         <div style={{ padding:"0 20px 20px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:10 }}>
-          {/* 프리셋 버튼 */}
           <div style={{ display:"flex",gap:8 }}>
-            {presets.map(p=>(
-              <button key={p.value} onClick={()=>{ setSelected(p.value); setCustom(""); }}
-                style={{ flex:1,padding:"10px 4px",borderRadius:12,border:`2px solid ${selected===p.value&&!custom?"#6A1B9A":"#e0e0e0"}`,background:selected===p.value&&!custom?"#F3E5F5":"#f9f9f9",cursor:"pointer",transition:"all 0.15s" }}>
-                <div style={{ fontWeight:800,fontSize:18,color:selected===p.value&&!custom?"#6A1B9A":"#333" }}>{p.label}</div>
-                <div style={{ fontSize:11,color:"#888",marginTop:2 }}>{p.sub}</div>
+            {[[1,"1x","Regular"],[1.5,"1.5x","Time & Half"],[2,"2x","Double"]].map(([v,l,s])=>(
+              <button key={v} onClick={()=>{ setSelected(v); setCustom(""); }}
+                style={{ flex:1,padding:"10px 4px",borderRadius:12,border:`2px solid ${selected===v&&!custom?"#6A1B9A":"#e0e0e0"}`,background:selected===v&&!custom?"#F3E5F5":"#f9f9f9",cursor:"pointer" }}>
+                <div style={{ fontWeight:800,fontSize:18,color:selected===v&&!custom?"#6A1B9A":"#333" }}>{l}</div>
+                <div style={{ fontSize:11,color:"#888",marginTop:2 }}>{s}</div>
               </button>
             ))}
           </div>
-          {/* Custom 입력 */}
           <div style={{ background:"#f5f5f5",borderRadius:12,padding:"12px 14px" }}>
             <div style={{ fontSize:13,fontWeight:700,color:"#555",marginBottom:6 }}>Custom multiplier</div>
             <div style={{ display:"flex",alignItems:"center",gap:8 }}>
-              <input
-                type="number" min="1" max="5" step="0.25"
-                placeholder="e.g. 1.75"
-                value={custom}
+              <input type="number" min="1" max="5" step="0.25" placeholder="e.g. 1.75" value={custom}
                 onChange={e=>{ setCustom(e.target.value); setSelected(null); }}
-                style={{ flex:1,padding:"8px 12px",borderRadius:8,border:"1.5px solid #ddd",fontSize:16,outline:"none" }}
-              />
+                style={{ flex:1,padding:"8px 12px",borderRadius:8,border:"1.5px solid #ddd",fontSize:16,outline:"none" }} />
               <span style={{ fontSize:15,color:"#888" }}>x</span>
             </div>
           </div>
-          {/* 미리보기 */}
-          {finalRate && finalRate > 0 && (
-            <div style={{ background:"#EDE7F6",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#4A148C" }}>
-              This shift will be calculated at <strong>{finalRate}x</strong> your hourly rate
-            </div>
-          )}
-          {/* 버튼 */}
+          {finalRate>0 && <div style={{ background:"#EDE7F6",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#4A148C" }}>This shift will be calculated at <strong>{finalRate}x</strong> your hourly rate</div>}
           <div style={{ display:"flex",gap:8,marginTop:4 }}>
             <button onClick={onClose} style={{ flex:1,padding:"12px",borderRadius:12,border:"1.5px solid #ddd",background:"#f5f5f5",fontWeight:700,fontSize:15,cursor:"pointer" }}>Cancel</button>
-            <button onClick={()=>onSave(finalRate&&finalRate>0?finalRate:1)}
-              style={{ flex:2,padding:"12px",borderRadius:12,border:"none",background:"#6A1B9A",color:"#fff",fontWeight:700,fontSize:15,cursor:"pointer" }}>
-              Save
-            </button>
+            <button onClick={()=>onSave(finalRate&&finalRate>0?finalRate:1)} style={{ flex:2,padding:"12px",borderRadius:12,border:"none",background:"#6A1B9A",color:"#fff",fontWeight:700,fontSize:15,cursor:"pointer" }}>Save</button>
           </div>
         </div>
       </div>

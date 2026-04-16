@@ -426,12 +426,21 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
               <label style={labelStyle}>Overtime (OT) Multiplier</label>
               <p style={{ fontSize:14,color:"#777",margin:"2px 0 12px" }}>Shifts marked as OT will multiply the hourly rate by this amount.</p>
               <div style={{ display:"flex",gap:10,marginBottom:24 }}>
-                {[[1.5,"1.5×  (Time & Half)"],[2.0,"2×  (Double Time)"]].map(([m,l])=>(
-                  <button key={m} onClick={()=>setS({...s,otMultiplier:m})}
-                    style={{ padding:"8px 16px",borderRadius:20,border:`1px solid ${s.otMultiplier===m?"#6A1B9A":"#ccc"}`,background:s.otMultiplier===m?"#6A1B9A":"#f5f5f5",color:s.otMultiplier===m?"#fff":"#333",fontWeight:s.otMultiplier===m?700:400,cursor:"pointer",fontSize:14 }}>
+                {[[1.25,"1.25×"],[1.5,"1.5×"],[2.0,"2×"]].map(([m,l])=>(
+                  <button key={m} onClick={()=>setS({...s,otMultiplier:m,otCustomMultiplier:""})}
+                    style={{ padding:"8px 16px",borderRadius:20,border:`1px solid ${s.otMultiplier===m&&!s.otCustomMultiplier?"#6A1B9A":"#ccc"}`,background:s.otMultiplier===m&&!s.otCustomMultiplier?"#6A1B9A":"#f5f5f5",color:s.otMultiplier===m&&!s.otCustomMultiplier?"#fff":"#333",fontWeight:s.otMultiplier===m&&!s.otCustomMultiplier?700:400,cursor:"pointer",fontSize:14 }}>
                     {l}
                   </button>
                 ))}
+              </div>
+              <div style={{ display:"flex",alignItems:"center",gap:10,marginTop:10,marginBottom:24 }}>
+                <span style={{ fontSize:14,color:"#555",fontWeight:700 }}>Custom:</span>
+                <input type="number" min="1" max="5" step="0.05"
+                  placeholder="e.g. 1.75"
+                  value={s.otCustomMultiplier||""}
+                  onChange={e=>setS({...s,otCustomMultiplier:e.target.value,otMultiplier:parseFloat(e.target.value)||s.otMultiplier})}
+                  style={{ flex:1,padding:"8px 12px",borderRadius:8,border:`1.5px solid ${s.otCustomMultiplier?"#6A1B9A":"#ddd"}`,fontSize:15,outline:"none" }} />
+                <span style={{ fontSize:14,color:"#888" }}>x</span>
               </div>
               {parsedRate > 0 && <>
                 <label style={labelStyle}>Preview</label>

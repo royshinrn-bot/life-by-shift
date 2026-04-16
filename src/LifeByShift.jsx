@@ -83,6 +83,9 @@ const Icons = {
   coffee: "☕", heart: "❤️", home: "🏠", money: "💵", clock: "🕐",
   medical: "🏥", school: "🎓",
 };
+function renderIcon(icon) {
+  return renderIcon(icon) || icon || "⭐";
+}
 
 // ── Default shift types ───────────────────────────────────────────────────
 const defaultShiftTypes = () => [
@@ -118,17 +121,24 @@ const ICON_OPTIONS = [
   { name: "Medical", key: "medical" }, { name: "School", key: "school" },
 ];
 
+const EMOJI_LIST = [
+  "☀️","🌙","⚡","🛏️","⭐","☕","❤️","🏠","💵","🕐","🏥","🎓",
+  "🚒","👮","💊","🩺","🔥","💪","🎯","📋","🚑","⚙️","🌟","💉",
+  "🏋️","🌿","🎵","✈️","🍎","💤","🧠","🛡️","⚓","🎖️","🔑","🌈",
+];
+
 function key(d) { return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
 function isToday(d) {
   const n = new Date();
   return d.getFullYear()===n.getFullYear() && d.getMonth()===n.getMonth() && d.getDate()===n.getDate();
 }
 
-function calendarWeeks(month) {
+function calendarWeeks(month, weekStartsMonday=false) {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const last  = new Date(month.getFullYear(), month.getMonth()+1, 0);
-  const startOffset = first.getDay();
-  const endOffset   = (7 - last.getDay() - 1) % 7;
+  const shift = weekStartsMonday ? 1 : 0;
+  const startOffset = (first.getDay() - shift + 7) % 7;
+  const endOffset   = (7 - ((last.getDay() - shift + 7) % 7) - 1) % 7;
   const start = new Date(first); start.setDate(start.getDate() - startOffset);
   const total = startOffset + last.getDate() + endOffset;
   const weeks = [];
@@ -189,6 +199,7 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
   const [hours, setHours] = useState(shift.hours);
   const [showOnCalendar, setShowOnCalendar] = useState(shift.showOnCalendar);
   const [isOvertimeRate, setIsOvertimeRate] = useState(shift.isOvertimeRate);
+  const [iconTab, setIconTab] = useState(EMOJI_LIST.includes(icon) || !Object.keys(Icons).includes(icon) ? "emoji" : "preset");
 
   return (
     <Modal
@@ -201,7 +212,7 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
     >
       {/* Preview */}
       <div style={{ display:"flex", flexDirection:"column", alignItems:"center", marginBottom:16 }}>
-        <div style={{ width:60,height:60,borderRadius:16,background:hexOp(color,0.15),border:`2.5px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28 }}>{Icons[icon]}</div>
+        <div style={{ width:60,height:60,borderRadius:16,background:hexOp(color,0.15),border:`2.5px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28 }}>{renderIcon(icon)}</div>
         <div style={{ marginTop:6, fontWeight:700, color, fontSize:17 }}>{name||"—"}</div>
       </div>
       {/* Name */}
@@ -210,14 +221,43 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
         style={{ ...inputStyle, marginBottom:14 }} />
       {/* Icon */}
       <label style={labelStyle}>Icon</label>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
-        {ICON_OPTIONS.map(opt => (
-          <button key={opt.key} onClick={()=>setIcon(opt.key)}
-            style={{ width:40,height:40,borderRadius:10,border:`2px solid ${icon===opt.key?color:"transparent"}`,background:icon===opt.key?hexOp(color,0.2):"#f0f0f0",fontSize:20,cursor:"pointer",transition:"all 0.12s" }}>
-            {Icons[opt.key]}
+      <div style={{ display:"flex",gap:6,marginBottom:8 }}>
+        {[["preset","Preset"],["emoji","Emoji"]].map(([t,l])=>(
+          <button key={t} onClick={()=>setIconTab(t)}
+            style={{ flex:1,padding:"6px",borderRadius:8,border:`2px solid ${iconTab===t?color:"#e0e0e0"}`,background:iconTab===t?hexOp(color,0.15):"#f9f9f9",fontWeight:iconTab===t?700:400,color:iconTab===t?color:"#555",cursor:"pointer",fontSize:13 }}>
+            {l}
           </button>
         ))}
       </div>
+      {iconTab==="preset" ? (
+        <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
+          {ICON_OPTIONS.map(opt => (
+            <button key={opt.key} onClick={()=>setIcon(opt.key)}
+              style={{ width:40,height:40,borderRadius:10,border:`2px solid ${icon===opt.key?color:"transparent"}`,background:icon===opt.key?hexOp(color,0.2):"#f0f0f0",fontSize:20,cursor:"pointer",transition:"all 0.12s" }}>
+              {renderIcon(opt.key)}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div style={{ marginBottom:14 }}>
+          <div style={{ display:"flex", flexWrap:"wrap", gap:6, marginBottom:8 }}>
+            {EMOJI_LIST.map(em => (
+              <button key={em} onClick={()=>setIcon(em)}
+                style={{ width:40,height:40,borderRadius:10,border:`2px solid ${icon===em?color:"transparent"}`,background:icon===em?hexOp(color,0.2):"#f0f0f0",fontSize:22,cursor:"pointer",transition:"all 0.12s" }}>
+                {em}
+              </button>
+            ))}
+          </div>
+          <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+            <input placeholder="Or paste any emoji..." value={EMOJI_LIST.includes(icon)||Object.keys(Icons).includes(icon)?"":icon}
+              onChange={e=>setIcon(e.target.value)}
+              style={{ flex:1,padding:"8px 10px",borderRadius:8,border:"1.5px solid #ddd",fontSize:20,outline:"none" }} />
+            <div style={{ width:40,height:40,borderRadius:10,background:hexOp(color,0.15),border:`2px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22 }}>
+              {icon}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Show on Calendar */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
         <span style={{ fontWeight:700, fontSize:15 }}>Show on Calendar</span>
@@ -262,12 +302,32 @@ function Toggle({ value, onChange, color="#1565C0" }) {
 // ── OT Hours Dialog ───────────────────────────────────────────────────────
 function OTDialog({ date, shift, onConfirm, onClose }) {
   const [hours, setHours] = useState(shift.hours);
+  const [mult, setMult] = useState(1.5);
+  const [customMult, setCustomMult] = useState("");
+  const finalMult = customMult ? parseFloat(customMult) : mult;
   return (
-    <Modal title={<span style={{display:"flex",alignItems:"center",gap:8}}><span>{Icons[shift.icon]}</span> OT Hours</span>} onClose={onClose}
+    <Modal title={<span style={{display:"flex",alignItems:"center",gap:8}}><span>{renderIcon(shift.icon)}</span> OT Hours</span>} onClose={onClose}
       actions={[
         <button key="c" onClick={onClose} style={btnOutline}>Cancel</button>,
-        <button key="ok" onClick={()=>{ playCoinSound(); onConfirm(hours); onClose(); }} style={{...btnFilled,background:shift.color}}>Confirm</button>
+        <button key="ok" onClick={()=>{ playCoinSound(); onConfirm(hours, finalMult); onClose(); }} style={{...btnFilled,background:shift.color}}>Confirm</button>
       ]}>
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontWeight:700,fontSize:14,marginBottom:8,color:"#555" }}>OT Multiplier</div>
+        <div style={{ display:"flex",gap:6,marginBottom:8 }}>
+          {[[1.25,"1.25x"],[1.5,"1.5x"],[2.0,"2x"]].map(([v,l])=>(
+            <button key={v} onClick={()=>{ setMult(v); setCustomMult(""); }}
+              style={{ flex:1,padding:"8px 4px",borderRadius:10,border:`2px solid ${mult===v&&!customMult?shift.color:"#e0e0e0"}`,background:mult===v&&!customMult?"#f3e5f5":"#f9f9f9",fontWeight:mult===v&&!customMult?700:400,color:mult===v&&!customMult?shift.color:"#555",cursor:"pointer",fontSize:13 }}>
+              {l}
+            </button>
+          ))}
+        </div>
+        <div style={{ display:"flex",alignItems:"center",gap:8 }}>
+          <input type="number" min="1" max="5" step="0.05" placeholder="Custom (e.g. 1.75)"
+            value={customMult} onChange={e=>{ setCustomMult(e.target.value); setMult(null); }}
+            style={{ flex:1,padding:"8px 10px",borderRadius:8,border:"1.5px solid #ddd",fontSize:14,outline:"none" }} />
+          <span style={{ color:"#888",fontSize:13 }}>x</span>
+        </div>
+      </div>
       <div style={{ textAlign:"center", color:"#9E9E9E", marginBottom:16 }}>
         {MONTH_NAMES[date.getMonth()+1]} {date.getDate()}, {date.getFullYear()}
       </div>
@@ -350,6 +410,24 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
         <div style={{ overflowY:"auto", flex:1, padding:16 }}>
           {tab===0 && (
             <div>
+              <label style={labelStyle}>Week Starts On</label>
+              <div style={{ display:"flex",gap:8,marginBottom:20 }}>
+                {[["Sunday",false],["Monday",true]].map(([label,val])=>(
+                  <button key={label} onClick={()=>setS({...s,weekStartsMonday:val})}
+                    style={{ flex:1,padding:"10px",borderRadius:10,border:`2px solid ${s.weekStartsMonday===val?"#1565C0":"#e0e0e0"}`,background:s.weekStartsMonday===val?"#E3F2FD":"#f9f9f9",fontWeight:s.weekStartsMonday===val?700:400,color:s.weekStartsMonday===val?"#1565C0":"#555",cursor:"pointer",fontSize:14 }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <label style={labelStyle}>Default Shift Length</label>
+              <div style={{ display:"flex",gap:8,marginBottom:20 }}>
+                {[[8,"8 hours"],[12,"12 hours"]].map(([val,label])=>(
+                  <button key={val} onClick={()=>setS({...s,defaultShiftHours:val})}
+                    style={{ flex:1,padding:"10px",borderRadius:10,border:`2px solid ${s.defaultShiftHours===val?"#1565C0":"#e0e0e0"}`,background:s.defaultShiftHours===val?"#E3F2FD":"#f9f9f9",fontWeight:s.defaultShiftHours===val?700:400,color:s.defaultShiftHours===val?"#1565C0":"#555",cursor:"pointer",fontSize:14 }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
               <label style={labelStyle}>Pay Period Start Date</label>
               <input type="date" value={fmtDateInput(s.payPeriodStartDate)} onChange={e=>setS({...s,payPeriodStartDate:new Date(e.target.value+"T00:00:00")})}
                 style={{...inputStyle,marginBottom:20}} />
@@ -419,7 +497,7 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
                 <div style={{ background:hexOp("#6A1B9A",0.08),border:`1px solid ${hexOp("#6A1B9A",0.3)}`,borderRadius:10,padding:14 }}>
                   {shifts.filter(sh=>sh.showOnCalendar&&sh.hours>0).map(sh=>(
                     <div key={sh.id} style={{ display:"flex",alignItems:"center",padding:"3px 0" }}>
-                      <span style={{ marginRight:6 }}>{Icons[sh.icon]}</span>
+                      <span style={{ marginRight:6 }}>{renderIcon(sh.icon)}</span>
                       <span style={{ fontWeight:700,color:sh.color,fontSize:15 }}>{sh.name}</span>
                       <span style={{ color:"#999",fontSize:14,marginLeft:4 }}>({sh.hours}h)</span>
                       <span style={{ marginLeft:"auto",fontWeight:700,fontSize:15 }}>
@@ -442,7 +520,7 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
               <p style={{ fontSize:14,color:"#777",margin:"2px 0 14px" }}>Tap to edit · Swipe or tap 🗑️ to delete · Max 8 types.</p>
               {shifts.map((sh,i)=>(
                 <div key={sh.id||i} style={{ display:"flex",alignItems:"center",background:"#fff",border:"1.5px solid #eee",borderRadius:12,padding:"10px 12px",marginBottom:10,gap:12,boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
-                  <div style={{ width:44,height:44,borderRadius:10,background:hexOp(sh.color,0.15),border:`2px solid ${sh.color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{Icons[sh.icon]}</div>
+                  <div style={{ width:44,height:44,borderRadius:10,background:hexOp(sh.color,0.15),border:`2px solid ${sh.color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{renderIcon(sh.icon)}</div>
                   <div style={{ flex:1, cursor:"pointer" }} onClick={()=>setEditingShift(i)}>
                     <div style={{ fontWeight:700,fontSize:16 }}>{sh.name}</div>
                     <div style={{ fontSize:13,color:"#777" }}>{sh.showOnCalendar ? `${sh.hours}h${sh.isOvertimeRate?" · OT Rate":""}` : "Clears calendar entry"}</div>
@@ -539,6 +617,16 @@ export default function LifeByShift() {
   const [confirmDialog, setConfirmDialog] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [firstLaunch, setFirstLaunch] = useState(() => !loadJSON("lbs_launched", false));
+  const [showQR, setShowQR] = useState(false);
+  const [sharedView, setSharedView] = useState(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const s = params.get("shared");
+      if (!s) return null;
+      return JSON.parse(decodeURIComponent(escape(atob(s))));
+    } catch { return null; }
+  });
   const [dayRates, setDayRates] = useState(() => loadJSON("lbs_dayRates", {}));
   const [rateDialog, setRateDialog] = useState(null);
   const [settings, setSettings]   = useState(() => loadSettings());
@@ -547,8 +635,15 @@ export default function LifeByShift() {
   useEffect(() => { saveJSON("lbs_schedule", schedule); }, [schedule]);
   useEffect(() => { saveJSON("lbs_notes", notes); }, [notes]);
   useEffect(() => { saveJSON("lbs_shiftTypes", shiftTypes); }, [shiftTypes]);
+  useEffect(() => {
+    if (!settings.defaultShiftHours) return;
+    setShiftTypes(st => st.map(s =>
+      s.isOvertimeRate ? s : { ...s, hours: settings.defaultShiftHours }
+    ));
+  }, [settings.defaultShiftHours]);
   useEffect(() => { saveJSON("lbs_darkMode", darkMode); }, [darkMode]);
   useEffect(() => { saveJSON("lbs_dayRates", dayRates); }, [dayRates]);
+  useEffect(() => { if (!firstLaunch) saveJSON("lbs_launched", true); }, [firstLaunch]);
   useEffect(() => { saveJSON("lbs_settings", {
     ...settings,
     payPeriodStartDate: settings.payPeriodStartDate.toISOString(),
@@ -581,10 +676,10 @@ export default function LifeByShift() {
       const k = key(d);
       const sh = schedule[k];
       if (sh && sh.showOnCalendar) {
-        const otMult = sh.isOvertimeRate ? settings.otMultiplier : 1;
+        const otMult = sh.isOvertimeRate ? (sh.otCustomMult || settings.otMultiplier) : 1;
         const dayMult = dayRates[k] || 1;
         const rate = sh.isOvertimeRate
-          ? settings.hourlyRate * settings.otMultiplier
+          ? settings.hourlyRate * (sh.otCustomMult || settings.otMultiplier)
           : settings.hourlyRate;
         // shifts: OT 배율 반영 (2x OT = 2 shifts 기준 12h)
         shifts += (sh.hours * otMult * dayMult) / 12;
@@ -616,7 +711,9 @@ export default function LifeByShift() {
   const today = new Date();
   const summary = calcPeriodSummary(selectedDate || today);
 
-  const weeks = calendarWeeks(month);
+  const weeks = calendarWeeks(month, settings.weekStartsMonday);
+  const displaySchedule = sharedView ? sharedView.schedule : schedule;
+  const displayShiftTypes = sharedView ? sharedView.shiftTypes : shiftTypes;
 
   function dropShift(date, shift) {
     const k = key(date);
@@ -675,10 +772,44 @@ export default function LifeByShift() {
         <img src="/app_title.png" style={{ height:32,objectFit:"contain" }} alt="Life by Shift" />
         <div style={{ marginLeft:"auto",display:"flex",gap:2 }}>
           <button onClick={()=>setDarkMode(d=>!d)} style={headerBtn}>{darkMode?"☀️":"🌙"}</button>
+          <button onClick={()=>setShowQR(true)} style={headerBtn}>📤</button>
           <button onClick={()=>setShowHelp(true)} style={headerBtn}>❓</button>
           <button onClick={()=>setShowSettings(true)} style={headerBtn}>⚙️</button>
         </div>
       </div>
+
+      {/* ── Shared view banner ── */}
+      {sharedView && (
+        <div style={{ background:"#1565C0",color:"#fff",padding:"8px 16px",fontSize:13,display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+          <span>👁️ Viewing shared schedule (read-only)</span>
+          <button onClick={()=>{ setSharedView(null); window.history.replaceState({},"",window.location.pathname); }}
+            style={{ background:"rgba(255,255,255,0.2)",border:"none",borderRadius:8,color:"#fff",padding:"3px 10px",cursor:"pointer",fontSize:12,fontWeight:700 }}>
+            Exit
+          </button>
+        </div>
+      )}
+
+      {/* ── First launch cue ── */}
+      {firstLaunch && (
+        <div onClick={()=>{ setFirstLaunch(false); setShowSettings(true); }}
+          style={{ position:"fixed",inset:0,zIndex:50,background:"rgba(0,0,0,0.55)",display:"flex",flexDirection:"column",alignItems:"flex-end",justifyContent:"flex-start",paddingTop:8,paddingRight:16,cursor:"pointer" }}>
+          <style>{`
+            @keyframes bounce {
+              0%,100% { transform: translateY(0); }
+              50% { transform: translateY(-10px); }
+            }
+            @keyframes fadeIn {
+              from { opacity:0; } to { opacity:1; }
+            }
+          `}</style>
+          <div style={{ animation:"fadeIn 0.4s ease", display:"flex",flexDirection:"column",alignItems:"center",gap:6,marginTop:4 }}>
+            <div style={{ animation:"bounce 0.9s ease infinite",fontSize:32 }}>👆</div>
+            <div style={{ background:"#FFD54F",color:"#333",fontWeight:800,fontSize:14,padding:"8px 16px",borderRadius:20,textAlign:"center",lineHeight:1.4 }}>
+              Tap here to set up<br/>your schedule!
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Shift Palette ── */}
       <div style={{ background:surf,boxShadow:"0 2px 6px rgba(0,0,0,0.06)",overflowX:"auto" }}>
@@ -706,7 +837,7 @@ export default function LifeByShift() {
                 boxShadow: selectedShift===shift ? `0 0 0 3px ${hexOp(shift.color,0.35)}` : "none",
                 transition:"all 0.15s",
               }}>
-                {Icons[shift.icon]}
+                {renderIcon(shift.icon)}
               </div>
               <span style={{ fontSize:12,fontWeight:700,color:selectedShift===shift?"#fff":shift.color,marginTop:4,whiteSpace:"nowrap",
                 background: selectedShift===shift ? shift.color : "transparent",
@@ -755,7 +886,7 @@ export default function LifeByShift() {
               const inMonth = date.getMonth()===month.getMonth();
               const today   = isToday(date);
               const payday  = isPayDay(date,settings);
-              const shift   = schedule[k];
+              const shift   = displaySchedule[k];
               const band    = payBand(date,settings.payPeriodStartDate);
               const hasNote = !!(notes[k]);
               const isSel   = selectedDate && key(selectedDate)===k;
@@ -793,7 +924,7 @@ export default function LifeByShift() {
                       <span style={{ fontSize:14,fontWeight:today?700:400,color:today?"#fff":inMonth?(darkMode?"#e0e0e0":"#212121"):"#bbb" }}>{date.getDate()}</span>
                     </div>
                     {shift && shift.showOnCalendar && <>
-                      <span style={{ fontSize:14 }}>{Icons[shift.icon]}</span>
+                      <span style={{ fontSize:14 }}>{renderIcon(shift.icon)}</span>
                       <span style={{ fontSize:9,fontWeight:700,color:shift.color }}>{shift.name}</span>
                     </>}
                   </div>
@@ -861,7 +992,7 @@ export default function LifeByShift() {
       {/* ── Dialogs ── */}
       {otDialog && (
         <OTDialog date={otDialog.date} shift={otDialog.shift} onClose={()=>setOtDialog(null)}
-          onConfirm={h=>{ const k=key(otDialog.date); setSchedule(s=>({...s,[k]:{...otDialog.shift,hours:h}})); playCoinSound(); }} />
+          onConfirm={(h,m)=>{ const k=key(otDialog.date); setSchedule(s=>({...s,[k]:{...otDialog.shift,hours:h,otCustomMult:m}})); playCoinSound(); }} />
       )}
       {noteDialog && (
         <NoteDialog date={noteDialog} note={notes[key(noteDialog)]||""} onClose={()=>setNoteDialog(null)}
@@ -929,6 +1060,9 @@ export default function LifeByShift() {
           </div>
         </div>
       )}
+      {showQR && (
+        <QRShareModal schedule={schedule} shiftTypes={shiftTypes} onClose={()=>setShowQR(false)} />
+      )}
       {rateDialog && (
         <RateDialog
           date={rateDialog}
@@ -945,6 +1079,59 @@ export default function LifeByShift() {
         <SettingsSheet settings={settings} shiftTypes={shiftTypes} onClose={()=>setShowSettings(false)}
           onSave={(ns,nst)=>{ setSettings(ns); setShiftTypes(nst); }} />
       )}
+    </div>
+  );
+}
+
+function QRShareModal({ schedule, shiftTypes, onClose }) {
+  const [qrUrl, setQrUrl] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const data = { schedule, shiftTypes };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${encoded}`;
+    const qr = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`;
+    setQrUrl(qr);
+  }, []);
+
+  function copyLink() {
+    const data = { schedule, shiftTypes };
+    const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    const shareUrl = `${window.location.origin}${window.location.pathname}?shared=${encoded}`;
+    navigator.clipboard.writeText(shareUrl).then(()=>{ setCopied(true); setTimeout(()=>setCopied(false),2000); });
+  }
+
+  return (
+    <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
+      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:360,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",maxHeight:"90vh",display:"flex",flexDirection:"column" }}>
+        <div style={{ padding:"18px 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+          <div style={{ fontWeight:800,fontSize:17 }}>📤 Share My Schedule</div>
+          <button onClick={onClose} style={{ background:"#f0f0f0",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:18 }}>×</button>
+        </div>
+        <div style={{ padding:"16px 20px 24px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:16 }}>
+          <div style={{ fontSize:13,color:"#888",textAlign:"center",lineHeight:1.5 }}>
+            Show this QR code to someone with Life by Shift — they can scan it to view your schedule!
+          </div>
+          {qrUrl ? (
+            <div style={{ padding:12,background:"#f9f9f9",borderRadius:16,border:"1px solid #eee" }}>
+              <img src={qrUrl} width={200} height={200} alt="QR Code" style={{ display:"block" }} />
+            </div>
+          ) : (
+            <div style={{ width:200,height:200,background:"#f0f0f0",borderRadius:16,display:"flex",alignItems:"center",justifyContent:"center",color:"#aaa",fontSize:13 }}>Generating...</div>
+          )}
+          <div style={{ background:"#E8F5E9",borderRadius:12,padding:"10px 14px",fontSize:12,color:"#2E7D32",textAlign:"center",lineHeight:1.5 }}>
+            🔒 Read-only. No account needed. No data sent to any server.
+          </div>
+          <button onClick={copyLink}
+            style={{ width:"100%",padding:"12px",borderRadius:12,border:"none",background:copied?"#2E7D32":"#1565C0",color:"#fff",fontWeight:700,fontSize:15,cursor:"pointer",transition:"background 0.2s" }}>
+            {copied ? "✅ Link Copied!" : "📋 Copy Link Instead"}
+          </button>
+          <button onClick={onClose} style={{ width:"100%",padding:"12px",borderRadius:12,border:"1.5px solid #ddd",background:"#f5f5f5",fontWeight:700,fontSize:15,cursor:"pointer" }}>
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

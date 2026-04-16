@@ -592,9 +592,9 @@ export default function LifeByShift() {
       payPeriodStartDate: new Date(now.getFullYear(), now.getMonth(), 1),
       payPeriodColor: "#BBDEFB", showPayDay: true, payDayFrequency: "biweekly",
       payDayOfMonth: 15, payDayAnchor: new Date(now.getFullYear(), now.getMonth(), 1),
-      hourlyRate: 0, otMultiplier: 1.5,
+      hourlyRate: 0, otMultiplier: 1.5, weekStartsMonday: false, defaultShiftHours: 12,
     };
-    return { ...s,
+    return { ...s, weekStartsMonday: s.weekStartsMonday ?? false, defaultShiftHours: s.defaultShiftHours ?? 12,
       payPeriodStartDate: new Date(s.payPeriodStartDate),
       payDayAnchor: new Date(s.payDayAnchor),
     };

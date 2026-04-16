@@ -118,6 +118,17 @@ const ICON_OPTIONS = [
   { name: "Medical", key: "medical" }, { name: "School", key: "school" },
 ];
 
+const EMOJI_LIST = [
+  "☀️","🌙","⚡","🛏️","⭐","☕","❤️","🏠","💵","🕐","🏥","🎓",
+  "🚒","👮","💊","🩺","🔥","💪","🎯","📋","🚑","⚙️","🌟","💉",
+  "🏋️","🌿","🎵","✈️","🍎","💤","🧠","🛡️","⚓","🎖️","🔑","🌈",
+];
+
+function renderIcon(icon) {
+  const Icons2 = { sun:"☀️",moon:"🌙",bolt:"⚡",bed:"🛏️",star:"⭐",coffee:"☕",heart:"❤️",home:"🏠",money:"💵",clock:"🕐",medical:"🏥",school:"🎓" };
+  return Icons2[icon] || icon || "⭐";
+}
+
 function key(d) { return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
 function isToday(d) {
   const n = new Date();
@@ -190,6 +201,8 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
   const [hours, setHours] = useState(shift.hours);
   const [showOnCalendar, setShowOnCalendar] = useState(shift.showOnCalendar);
   const [isOvertimeRate, setIsOvertimeRate] = useState(shift.isOvertimeRate);
+  const presetKeys = ["sun","moon","bolt","bed","star","coffee","heart","home","money","clock","medical","school"];
+  const [iconTab, setIconTab] = useState(presetKeys.includes(icon) ? "preset" : "emoji");
 
   return (
     <Modal
@@ -211,14 +224,43 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
         style={{ ...inputStyle, marginBottom:14 }} />
       {/* Icon */}
       <label style={labelStyle}>Icon</label>
-      <div style={{ display:"flex", flexWrap:"wrap", gap:8, marginBottom:14 }}>
-        {ICON_OPTIONS.map(opt => (
-          <button key={opt.key} onClick={()=>setIcon(opt.key)}
-            style={{ width:40,height:40,borderRadius:10,border:`2px solid ${icon===opt.key?color:"transparent"}`,background:icon===opt.key?hexOp(color,0.2):"#f0f0f0",fontSize:20,cursor:"pointer",transition:"all 0.12s" }}>
-            {Icons[opt.key]}
+      <div style={{ display:"flex",gap:6,marginBottom:8 }}>
+        {[["preset","Preset"],["emoji","Emoji"]].map(([t,l])=>(
+          <button key={t} onClick={()=>setIconTab(t)}
+            style={{ flex:1,padding:"6px",borderRadius:8,border:`2px solid ${iconTab===t?color:"#e0e0e0"}`,background:iconTab===t?hexOp(color,0.15):"#f9f9f9",fontWeight:iconTab===t?700:400,color:iconTab===t?color:"#555",cursor:"pointer",fontSize:13 }}>
+            {l}
           </button>
         ))}
       </div>
+      {iconTab==="preset" ? (
+        <div style={{ display:"flex",flexWrap:"wrap",gap:8,marginBottom:14 }}>
+          {ICON_OPTIONS.map(opt=>(
+            <button key={opt.key} onClick={()=>setIcon(opt.key)}
+              style={{ width:40,height:40,borderRadius:10,border:`2px solid ${icon===opt.key?color:"transparent"}`,background:icon===opt.key?hexOp(color,0.2):"#f0f0f0",fontSize:20,cursor:"pointer" }}>
+              {Icons[opt.key]}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div style={{ marginBottom:14 }}>
+          <div style={{ display:"flex",flexWrap:"wrap",gap:6,marginBottom:8 }}>
+            {EMOJI_LIST.map(em=>(
+              <button key={em} onClick={()=>setIcon(em)}
+                style={{ width:40,height:40,borderRadius:10,border:`2px solid ${icon===em?color:"transparent"}`,background:icon===em?hexOp(color,0.2):"#f0f0f0",fontSize:22,cursor:"pointer" }}>
+                {em}
+              </button>
+            ))}
+          </div>
+          <div style={{ display:"flex",alignItems:"center",gap:8,marginTop:4 }}>
+            <input placeholder="Or paste any emoji..." value={presetKeys.includes(icon)?"":icon}
+              onChange={e=>setIcon(e.target.value)}
+              style={{ flex:1,padding:"8px 10px",borderRadius:8,border:"1.5px solid #ddd",fontSize:20,outline:"none" }} />
+            <div style={{ width:40,height:40,borderRadius:10,background:hexOp(color,0.15),border:`2px solid ${color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22 }}>
+              {renderIcon(icon)}
+            </div>
+          </div>
+        </div>
+      )}
       {/* Show on Calendar */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
         <span style={{ fontWeight:700, fontSize:15 }}>Show on Calendar</span>
@@ -264,7 +306,7 @@ function Toggle({ value, onChange, color="#1565C0" }) {
 function OTDialog({ date, shift, onConfirm, onClose }) {
   const [hours, setHours] = useState(shift.hours);
   return (
-    <Modal title={<span style={{display:"flex",alignItems:"center",gap:8}}><span>{Icons[shift.icon]}</span> OT Hours</span>} onClose={onClose}
+    <Modal title={<span style={{display:"flex",alignItems:"center",gap:8}}><span>{renderIcon(shift.icon)}</span> OT Hours</span>} onClose={onClose}
       actions={[
         <button key="c" onClick={onClose} style={btnOutline}>Cancel</button>,
         <button key="ok" onClick={()=>{ playCoinSound(); onConfirm(hours); onClose(); }} style={{...btnFilled,background:shift.color}}>Confirm</button>
@@ -447,7 +489,7 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
                 <div style={{ background:hexOp("#6A1B9A",0.08),border:`1px solid ${hexOp("#6A1B9A",0.3)}`,borderRadius:10,padding:14 }}>
                   {shifts.filter(sh=>sh.showOnCalendar&&sh.hours>0).map(sh=>(
                     <div key={sh.id} style={{ display:"flex",alignItems:"center",padding:"3px 0" }}>
-                      <span style={{ marginRight:6 }}>{Icons[sh.icon]}</span>
+                      <span style={{ marginRight:6 }}>{renderIcon(sh.icon)}</span>
                       <span style={{ fontWeight:700,color:sh.color,fontSize:15 }}>{sh.name}</span>
                       <span style={{ color:"#999",fontSize:14,marginLeft:4 }}>({sh.hours}h)</span>
                       <span style={{ marginLeft:"auto",fontWeight:700,fontSize:15 }}>
@@ -470,7 +512,7 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
               <p style={{ fontSize:14,color:"#777",margin:"2px 0 14px" }}>Tap to edit · Swipe or tap 🗑️ to delete · Max 8 types.</p>
               {shifts.map((sh,i)=>(
                 <div key={sh.id||i} style={{ display:"flex",alignItems:"center",background:"#fff",border:"1.5px solid #eee",borderRadius:12,padding:"10px 12px",marginBottom:10,gap:12,boxShadow:"0 1px 4px rgba(0,0,0,0.06)" }}>
-                  <div style={{ width:44,height:44,borderRadius:10,background:hexOp(sh.color,0.15),border:`2px solid ${sh.color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{Icons[sh.icon]}</div>
+                  <div style={{ width:44,height:44,borderRadius:10,background:hexOp(sh.color,0.15),border:`2px solid ${sh.color}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0 }}>{renderIcon(sh.icon)}</div>
                   <div style={{ flex:1, cursor:"pointer" }} onClick={()=>setEditingShift(i)}>
                     <div style={{ fontWeight:700,fontSize:16 }}>{sh.name}</div>
                     <div style={{ fontSize:13,color:"#777" }}>{sh.showOnCalendar ? `${sh.hours}h${sh.isOvertimeRate?" · OT Rate":""}` : "Clears calendar entry"}</div>
@@ -730,7 +772,7 @@ export default function LifeByShift() {
                 boxShadow: selectedShift===shift ? `0 0 0 3px ${hexOp(shift.color,0.35)}` : "none",
                 transition:"all 0.15s",
               }}>
-                {Icons[shift.icon]}
+                {renderIcon(shift.icon)}
               </div>
               <span style={{ fontSize:12,fontWeight:700,color:selectedShift===shift?"#fff":shift.color,marginTop:4,whiteSpace:"nowrap",
                 background: selectedShift===shift ? shift.color : "transparent",
@@ -814,7 +856,7 @@ export default function LifeByShift() {
                       <span style={{ fontSize:14,fontWeight:today?700:400,color:today?"#fff":inMonth?(darkMode?"#e0e0e0":"#212121"):"#bbb" }}>{date.getDate()}</span>
                     </div>
                     {shift && shift.showOnCalendar && <>
-                      <span style={{ fontSize:14 }}>{Icons[shift.icon]}</span>
+                      <span style={{ fontSize:14 }}>{renderIcon(shift.icon)}</span>
                       <span style={{ fontSize:9,fontWeight:700,color:shift.color }}>{shift.name}</span>
                     </>}
                   </div>

@@ -635,12 +635,7 @@ export default function LifeByShift() {
   useEffect(() => { saveJSON("lbs_schedule", schedule); }, [schedule]);
   useEffect(() => { saveJSON("lbs_notes", notes); }, [notes]);
   useEffect(() => { saveJSON("lbs_shiftTypes", shiftTypes); }, [shiftTypes]);
-  useEffect(() => {
-    if (!settings.defaultShiftHours) return;
-    setShiftTypes(st => st.map(s =>
-      s.isOvertimeRate ? s : { ...s, hours: settings.defaultShiftHours }
-    ));
-  }, [settings.defaultShiftHours]);
+
   useEffect(() => { saveJSON("lbs_darkMode", darkMode); }, [darkMode]);
   useEffect(() => { saveJSON("lbs_dayRates", dayRates); }, [dayRates]);
   useEffect(() => { if (!firstLaunch) saveJSON("lbs_launched", true); }, [firstLaunch]);
@@ -1077,7 +1072,14 @@ export default function LifeByShift() {
       )}
       {showSettings && (
         <SettingsSheet settings={settings} shiftTypes={shiftTypes} onClose={()=>setShowSettings(false)}
-          onSave={(ns,nst)=>{ setSettings(ns); setShiftTypes(nst); }} />
+          onSave={(ns,nst)=>{
+            setSettings(ns);
+            if (ns.defaultShiftHours !== settings.defaultShiftHours) {
+              setShiftTypes(nst.map(s => s.isOvertimeRate ? s : {...s, hours: ns.defaultShiftHours}));
+            } else {
+              setShiftTypes(nst);
+            }
+          }} />
       )}
     </div>
   );

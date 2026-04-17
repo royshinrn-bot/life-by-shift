@@ -752,7 +752,7 @@ export default function LifeByShift() {
       {/* ── Header ── */}
       <div style={{ background:surf, padding:"10px 16px 10px 16px", display:"flex", alignItems:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.07)" }}>
         <img src="/app_title.png" style={{ height:32,objectFit:"contain" }} alt="Life by Shift" />
-        <div style={{ marginLeft:"auto",display:"flex",gap:2 }}>
+        <div style={{ marginLeft:"auto",display:"flex",gap:0 }}>
           <button onClick={()=>setDarkMode(d=>!d)} style={headerBtn}>{darkMode?"☀️":"🌙"}</button>
           <button onClick={()=>setShowRepeat(true)} style={headerBtn}>🔁</button>
           <button onClick={()=>setShowHelp(true)} style={headerBtn}>❓</button>
@@ -1213,5 +1213,5 @@ function SummaryTile({ label, value, icon, color, subtitle }) {
   );
 }
 
-const headerBtn = { background:"none",border:"none",cursor:"pointer",fontSize:20,padding:"4px 6px",borderRadius:8 };
+const headerBtn = { background:"none",border:"none",cursor:"pointer",fontSize:18,padding:"4px 3px",borderRadius:8 };
 const navBtn    = { background:"none",border:"none",cursor:"pointer",fontSize:26,padding:"0 8px",color:"#555" };

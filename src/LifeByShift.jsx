@@ -1097,7 +1097,7 @@ function RepeatModal({ schedule, shiftTypes, onClose, onApply }) {
     <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
       <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:380,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",maxHeight:"90vh",display:"flex",flexDirection:"column" }}>
         <div style={{ padding:"18px 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
-          <div style={{ fontWeight:800,fontSize:17 }}>🔁 Repeat Pattern</div>
+          <div style={{ fontWeight:800,fontSize:17 }}>🔁 Repeat Rotation</div>
           <button onClick={onClose} style={{ background:"#f0f0f0",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:18 }}>×</button>
         </div>
 

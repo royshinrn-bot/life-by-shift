@@ -798,7 +798,36 @@ export default function LifeByShift() {
                 padding: selectedShift===shift ? "1px 6px" : "0",
                 borderRadius:8, transition:"all 0.15s",
               }}>
-                {shift.showOnCalendar ? shift.name : `${shift.name} (Reset)`}
+                {shift.name}
+              </span>
+            </div>
+          ))}
+          </div>
+          {/* OFF 고정 오른쪽 */}
+          {[...shiftTypes].filter(s=>!s.showOnCalendar).map(shift=>(
+            <div key={shift.id||shift.name}
+              draggable
+              onDragStart={()=>{ dragShiftRef.current=shift; setDragging(shift); ensureAudio(); setSelectedShift(null); }}
+              onDragEnd={()=>{ setDragging(null); setHovering(null); }}
+              onClick={()=>{ setSelectedShift(s => s===shift ? null : shift); }}
+              style={{ display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 auto",padding:"0 6px",cursor:"pointer",opacity:dragging===shift?0.35:1,transition:"all 0.15s",
+                transform: selectedShift===shift ? "scale(1.12)" : "scale(1)",
+              }}>
+              <div style={{ width:46,height:46,borderRadius:14,
+                background: selectedShift===shift ? shift.color : hexOp(shift.color,0.12),
+                border:`2px solid ${shift.color}`,
+                display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,
+                boxShadow: selectedShift===shift ? `0 0 0 3px ${hexOp(shift.color,0.35)}` : "none",
+                transition:"all 0.15s",
+              }}>
+                {renderIcon(shift.icon)}
+              </div>
+              <span style={{ fontSize:12,fontWeight:700,color:selectedShift===shift?"#fff":shift.color,marginTop:4,whiteSpace:"nowrap",
+                background: selectedShift===shift ? shift.color : "transparent",
+                padding: selectedShift===shift ? "1px 6px" : "0",
+                borderRadius:8, transition:"all 0.15s",
+              }}>
+                {shift.name}
               </span>
             </div>
           ))}
@@ -817,7 +846,7 @@ export default function LifeByShift() {
         </div>
       )}
 
-      {/* ── Month nav ── */}}
+      {/* ── Month nav ── */}
       <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",padding:"10px 4px 2px" }}>
         <button onClick={()=>setMonth(m=>new Date(m.getFullYear(),m.getMonth()-1))} style={navBtn}>‹</button>
         <span style={{ fontSize:18,fontWeight:700,color:text }}>{MONTH_NAMES[month.getMonth()+1]}  {month.getFullYear()}</span>

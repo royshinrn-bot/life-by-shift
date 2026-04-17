@@ -774,14 +774,14 @@ export default function LifeByShift() {
       <div style={{ background:surf,boxShadow:"0 2px 6px rgba(0,0,0,0.06)",overflowX:"auto" }}>
         <div style={{ display:"flex",alignItems:"flex-start",padding:"10px 8px",gap:0,width:"100%" }}>
           {/* 일반 쉬프트 — 줄바꿈 */}
-          <div style={{ display:"flex",flexWrap:"wrap",flex:1,gap:0 }}>
+          <div style={{ display:"flex",flexWrap:"wrap",flex:1,gap:0,justifyContent:"flex-start" }}>
           {[...shiftTypes].filter(s=>s.showOnCalendar).map(shift=>(
             <div key={shift.id||shift.name}
               draggable
               onDragStart={()=>{ dragShiftRef.current=shift; setDragging(shift); ensureAudio(); setSelectedShift(null); }}
               onDragEnd={()=>{ setDragging(null); setHovering(null); }}
               onClick={()=>{ setSelectedShift(s => s===shift ? null : shift); }}
-              style={{ display:"flex",flexDirection:"column",alignItems:"center",flex:"1 0 22%",minWidth:"60px",padding:"0 6px",cursor:"pointer",opacity:dragging===shift?0.35:1,transition:"all 0.15s",
+              style={{ display:"flex",flexDirection:"column",alignItems:"center",flex:"0 0 22%",minWidth:"60px",padding:"0 6px",cursor:"pointer",opacity:dragging===shift?0.35:1,transition:"all 0.15s",
                 transform: selectedShift===shift ? "scale(1.12)" : "scale(1)",
               }}>
               <div style={{ width:46,height:46,borderRadius:14,

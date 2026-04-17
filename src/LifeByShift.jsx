@@ -465,6 +465,25 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
                 <input value={rate} onChange={e=>setRate(e.target.value.replace(/[^0-9.]/g,""))} placeholder="0.00"
                   style={{ ...inputStyle,paddingLeft:30,fontSize:20,fontWeight:700 }} />
               </div>
+              <label style={labelStyle}>Paid Hours per Shift</label>
+              <p style={{ fontSize:14,color:"#777",margin:"2px 0 10px" }}>Actual paid hours (e.g. 12h shift = 11.25h paid)</p>
+              <input type="number" min="1" max="24" step="0.25" value={s.paidHours||""}
+                onChange={e=>setS({...s,paidHours:parseFloat(e.target.value)||0})}
+                style={{ ...inputStyle,marginBottom:6,fontSize:20,fontWeight:700 }} />
+              <p style={{ fontSize:13,color:"#888",margin:"0 0 20px" }}>
+                Common: 8h shift → 7.5h paid &nbsp;|&nbsp; 12h shift → 11.25h paid
+              </p>
+
+              <label style={labelStyle}>Tax Rate (%)</label>
+              <p style={{ fontSize:14,color:"#777",margin:"2px 0 10px" }}>Est. tax on your income (optional). Used to show after-tax income.</p>
+              <div style={{ position:"relative",marginBottom:24 }}>
+                <input type="number" min="0" max="60" step="1" value={s.taxRate||""}
+                  onChange={e=>setS({...s,taxRate:parseFloat(e.target.value)||0})}
+                  placeholder="0"
+                  style={{ ...inputStyle,paddingRight:30,fontSize:20,fontWeight:700 }} />
+                <span style={{ position:"absolute",right:12,top:"50%",transform:"translateY(-50%)",fontSize:18,fontWeight:700,color:"#555" }}>%</span>
+              </div>
+
               <label style={labelStyle}>Overtime (OT) Multiplier</label>
               <p style={{ fontSize:14,color:"#777",margin:"2px 0 12px" }}>Shifts marked as OT will multiply the hourly rate by this amount.</p>
               <div style={{ display:"flex",gap:10,marginBottom:24 }}>
@@ -583,13 +602,15 @@ export default function LifeByShift() {
       payPeriodStartDate: new Date(now.getFullYear(), now.getMonth(), 1),
       payPeriodColor: "#BBDEFB", showPayDay: true, payDayFrequency: "biweekly",
       payDayOfMonth: 15, payDayAnchor: new Date(now.getFullYear(), now.getMonth(), 1),
-      hourlyRate: 0, otMultiplier: 1.5, weekStartsMonday: false, defaultShiftHours: 12,
+      hourlyRate: 0, otMultiplier: 1.5, weekStartsMonday: false, defaultShiftHours: 12, paidHours: 11.25, taxRate: 0,
     };
     return { ...s,
       payPeriodStartDate: new Date(s.payPeriodStartDate),
       payDayAnchor: new Date(s.payDayAnchor),
       weekStartsMonday: s.weekStartsMonday ?? false,
       defaultShiftHours: s.defaultShiftHours ?? 12,
+      paidHours: s.paidHours ?? 11.25,
+      taxRate: s.taxRate ?? 0,
     };
   }
 
@@ -610,6 +631,7 @@ export default function LifeByShift() {
   const [showHelp, setShowHelp]   = useState(false);
   const [rateDialog, setRateDialog] = useState(null);
   const [firstLaunch, setFirstLaunch] = useState(() => !loadJSON("lbs_launched", false));
+  const [showRepeat, setShowRepeat] = useState(false);
   const [settings, setSettings]   = useState(loadSettings);
 
   useEffect(() => { saveJSON("lbs_schedule", schedule); }, [schedule]);
@@ -656,13 +678,14 @@ export default function LifeByShift() {
           : settings.hourlyRate;
         const otMult = sh.isOvertimeRate ? settings.otMultiplier : 1;
         const dayMult = dayRates[key(d)] || 1;
-        shifts += (sh.hours * otMult * dayMult) / 12;
-        totalHours += sh.hours * otMult * dayMult;
+        const paidH = sh.isOvertimeRate ? sh.hours : (settings.paidHours || sh.hours);
+        shifts += (paidH * otMult * dayMult) / (settings.paidHours || 12);
+        totalHours += paidH * otMult * dayMult;
         scheduled += sh.hours;
-        if (settings.hourlyRate > 0) scheduledIncome += sh.hours * rate * dayMult;
+        if (settings.hourlyRate > 0) scheduledIncome += paidH * rate * dayMult;
         if (d <= todayD) {
           worked += sh.hours;
-          if (settings.hourlyRate > 0) workedIncome += sh.hours * rate * dayMult;
+          if (settings.hourlyRate > 0) workedIncome += paidH * rate * dayMult;
         }
       }
     }
@@ -731,6 +754,7 @@ export default function LifeByShift() {
         <img src="/app_title.png" style={{ height:32,objectFit:"contain" }} alt="Life by Shift" />
         <div style={{ marginLeft:"auto",display:"flex",gap:2 }}>
           <button onClick={()=>setDarkMode(d=>!d)} style={headerBtn}>{darkMode?"☀️":"🌙"}</button>
+          <button onClick={()=>setShowRepeat(true)} style={headerBtn}>🔁</button>
           <button onClick={()=>setShowHelp(true)} style={headerBtn}>❓</button>
           <button onClick={()=>setShowSettings(true)} style={headerBtn}>⚙️</button>
         </div>
@@ -748,21 +772,16 @@ export default function LifeByShift() {
       )}
       {/* ── Shift Palette ── */}
       <div style={{ background:surf,boxShadow:"0 2px 6px rgba(0,0,0,0.06)",overflowX:"auto" }}>
-        <div style={{ display:"flex",padding:"10px 8px",gap:0,minWidth:"max-content",width:"100%" }}>
-          {[...shiftTypes]
-            .sort((a,b) => {
-              // Off/Reset types always go to the far right
-              if (!a.showOnCalendar && b.showOnCalendar) return 1;
-              if (a.showOnCalendar && !b.showOnCalendar) return -1;
-              return 0;
-            })
-            .map(shift=>(
+        <div style={{ display:"flex",alignItems:"flex-start",padding:"10px 8px",gap:0,width:"100%" }}>
+          {/* 일반 쉬프트 — 줄바꿈 */}
+          <div style={{ display:"flex",flexWrap:"wrap",flex:1,gap:0 }}>
+          {[...shiftTypes].filter(s=>s.showOnCalendar).map(shift=>(
             <div key={shift.id||shift.name}
               draggable
               onDragStart={()=>{ dragShiftRef.current=shift; setDragging(shift); ensureAudio(); setSelectedShift(null); }}
               onDragEnd={()=>{ setDragging(null); setHovering(null); }}
               onClick={()=>{ setSelectedShift(s => s===shift ? null : shift); }}
-              style={{ display:"flex",flexDirection:"column",alignItems:"center",flex:"1 0 auto",padding:"0 6px",cursor:"pointer",opacity:dragging===shift?0.35:1,transition:"all 0.15s",
+              style={{ display:"flex",flexDirection:"column",alignItems:"center",flex:"1 0 22%",minWidth:"60px",padding:"0 6px",cursor:"pointer",opacity:dragging===shift?0.35:1,transition:"all 0.15s",
                 transform: selectedShift===shift ? "scale(1.12)" : "scale(1)",
               }}>
               <div style={{ width:46,height:46,borderRadius:14,
@@ -916,7 +935,8 @@ export default function LifeByShift() {
           <SummaryTile label="Hours" value={`${summary.totalHours%1===0?summary.totalHours:summary.totalHours.toFixed(1)}h`} icon="🕐" color="#E65100" subtitle="straight pay" />
           {settings.hourlyRate > 0 && <>
             <div style={{ width:1,height:38,background:"rgba(0,0,0,0.12)" }} />
-            <SummaryTile label="Est. Income" value={`$${Math.round(summary.scheduledIncome)}`} icon="💵" color="#6A1B9A" subtitle="this period" />
+            <SummaryTile label="Est. Income" value={`$${Math.round(summary.scheduledIncome)}`} icon="💵" color="#6A1B9A"
+              subtitle={settings.taxRate>0 ? `~$${Math.round(summary.scheduledIncome*(1-settings.taxRate/100))} after tax` : "this period"} />
           </>}
         </div>
       </div>
@@ -972,6 +992,14 @@ export default function LifeByShift() {
         </div>
       )}
 
+      {showRepeat && (
+        <RepeatModal
+          schedule={schedule}
+          shiftTypes={shiftTypes}
+          onClose={()=>setShowRepeat(false)}
+          onApply={(newSchedule)=>{ setSchedule(newSchedule); setShowRepeat(false); }}
+        />
+      )}
       {rateDialog && (
         <RateDialog date={rateDialog} currentRate={dayRates[key(rateDialog)]||1} onClose={()=>setRateDialog(null)}
           onSave={r=>{ const k=key(rateDialog); setDayRates(d=>r===1?(({[k]:_,...rest})=>rest)(d):{...d,[k]:r}); setRateDialog(null); }} />
@@ -988,6 +1016,116 @@ export default function LifeByShift() {
             }
           }} />
       )}
+    </div>
+  );
+}
+
+function RepeatModal({ schedule, shiftTypes, onClose, onApply }) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const [step, setStep] = useState(1);
+  const [patternStart, setPatternStart] = useState("");
+  const [patternEnd, setPatternEnd] = useState("");
+  const [repeatEnd, setRepeatEnd] = useState("");
+  const [preview, setPreview] = useState(null);
+  const [error, setError] = useState("");
+
+  function fmt(d) { return d.toISOString().split("T")[0]; }
+  function key2(d) { return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+
+  function buildPreview() {
+    setError("");
+    const ps = new Date(patternStart+"T00:00:00");
+    const pe = new Date(patternEnd+"T00:00:00");
+    const re = new Date(repeatEnd+"T00:00:00");
+    if (ps >= pe) { setError("Pattern end must be after start."); return; }
+    if (re <= pe) { setError("Repeat until must be after pattern end."); return; }
+
+    // 패턴 추출
+    const pattern = [];
+    for (let d = new Date(ps); d <= pe; d.setDate(d.getDate()+1)) {
+      pattern.push({ offset: Math.round((d-ps)/86400000), shift: schedule[key2(d)] || null });
+    }
+    const patternLen = pattern.length;
+
+    // 반복 적용 — 오늘 이후만
+    const newSchedule = { ...schedule };
+    let applyStart = new Date(pe); applyStart.setDate(applyStart.getDate()+1);
+    for (let d = new Date(applyStart); d <= re; d.setDate(d.getDate()+1)) {
+      if (d <= today) continue; // 지난 날짜 보호
+      const offset = Math.round((d - ps) / 86400000) % patternLen;
+      const patternDay = pattern[offset];
+      const k = key2(d);
+      if (patternDay.shift) newSchedule[k] = patternDay.shift;
+      else delete newSchedule[k];
+    }
+    setPreview(newSchedule);
+    setStep(3);
+  }
+
+  const inputStyle2 = { width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid #ddd",fontSize:16,outline:"none",boxSizing:"border-box" };
+
+  return (
+    <div style={{ position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16 }}>
+      <div style={{ background:"#fff",borderRadius:20,width:"100%",maxWidth:380,boxShadow:"0 8px 40px rgba(0,0,0,0.18)",maxHeight:"90vh",display:"flex",flexDirection:"column" }}>
+        <div style={{ padding:"18px 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+          <div style={{ fontWeight:800,fontSize:17 }}>🔁 Repeat Pattern</div>
+          <button onClick={onClose} style={{ background:"#f0f0f0",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:18 }}>×</button>
+        </div>
+
+        <div style={{ padding:"16px 20px 24px",overflowY:"auto",flex:1,display:"flex",flexDirection:"column",gap:14 }}>
+
+          {step===1 && <>
+            <div style={{ background:"#E3F2FD",borderRadius:12,padding:"12px 14px",fontSize:13,color:"#1565C0",lineHeight:1.6 }}>
+              <strong>Step 1:</strong> Select the dates of your existing pattern on the calendar first, then come back here to set the date range.
+            </div>
+            <div>
+              <label style={{ display:"block",fontWeight:700,fontSize:14,marginBottom:6 }}>Pattern Start Date</label>
+              <input type="date" value={patternStart} onChange={e=>setPatternStart(e.target.value)} style={inputStyle2} />
+            </div>
+            <div>
+              <label style={{ display:"block",fontWeight:700,fontSize:14,marginBottom:6 }}>Pattern End Date</label>
+              <input type="date" value={patternEnd} onChange={e=>setPatternEnd(e.target.value)} style={inputStyle2} />
+            </div>
+            <button onClick={()=>{ if(!patternStart||!patternEnd){setError("Please select both dates.");return;} setError(""); setStep(2); }}
+              style={{ background:"#1565C0",color:"#fff",border:"none",borderRadius:12,padding:"13px",fontWeight:700,fontSize:15,cursor:"pointer" }}>
+              Next →
+            </button>
+          </>}
+
+          {step===2 && <>
+            <div style={{ background:"#E8F5E9",borderRadius:12,padding:"12px 14px",fontSize:13,color:"#2E7D32",lineHeight:1.6 }}>
+              <strong>Step 2:</strong> How far should the pattern repeat? Past shifts will not be changed.
+            </div>
+            <div>
+              <label style={{ display:"block",fontWeight:700,fontSize:14,marginBottom:6 }}>Repeat Until</label>
+              <input type="date" value={repeatEnd} onChange={e=>setRepeatEnd(e.target.value)} style={inputStyle2} />
+            </div>
+            {error && <div style={{ color:"#C62828",fontSize:13 }}>{error}</div>}
+            <div style={{ display:"flex",gap:8 }}>
+              <button onClick={()=>setStep(1)} style={{ flex:1,padding:"12px",borderRadius:12,border:"1.5px solid #ddd",background:"#f5f5f5",fontWeight:700,fontSize:15,cursor:"pointer" }}>← Back</button>
+              <button onClick={()=>{ if(!repeatEnd){setError("Please select repeat end date.");return;} buildPreview(); }}
+                style={{ flex:2,padding:"12px",borderRadius:12,border:"none",background:"#1565C0",color:"#fff",fontWeight:700,fontSize:15,cursor:"pointer" }}>
+                Preview →
+              </button>
+            </div>
+          </>}
+
+          {step===3 && preview && <>
+            <div style={{ background:"#FFF8E1",borderRadius:12,padding:"12px 14px",fontSize:13,color:"#F57F17",lineHeight:1.6 }}>
+              <strong>Ready to apply!</strong> The pattern will repeat from <strong>{new Date(patternEnd+"T00:00:00").toDateString()}</strong> until <strong>{new Date(repeatEnd+"T00:00:00").toDateString()}</strong>. Past shifts are protected.
+            </div>
+            <div style={{ display:"flex",gap:8 }}>
+              <button onClick={()=>setStep(2)} style={{ flex:1,padding:"12px",borderRadius:12,border:"1.5px solid #ddd",background:"#f5f5f5",fontWeight:700,fontSize:15,cursor:"pointer" }}>← Back</button>
+              <button onClick={()=>onApply(preview)}
+                style={{ flex:2,padding:"12px",borderRadius:12,border:"none",background:"#2E7D32",color:"#fff",fontWeight:700,fontSize:15,cursor:"pointer" }}>
+                ✅ Apply Pattern
+              </button>
+            </div>
+          </>}
+
+          {error && step!==2 && <div style={{ color:"#C62828",fontSize:13 }}>{error}</div>}
+        </div>
+      </div>
     </div>
   );
 }

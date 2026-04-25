@@ -272,6 +272,13 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
           <span style={{ fontWeight:700, fontSize:15 }}>Uses OT Rate</span>
           <Toggle value={isOvertimeRate} onChange={setIsOvertimeRate} color="#6A1B9A" />
         </div>
+        <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14 }}>
+          <div>
+            <span style={{ fontWeight:700,fontSize:15 }}>Count in Calculations</span>
+            <p style={{ fontSize:12,color:"#888",margin:"2px 0 0",lineHeight:1.4 }}>Turn off for tracking-only shifts</p>
+          </div>
+          <Toggle value={countInCalc} onChange={v=>{ setCountInCalc(v); if(!v) setHours(0); }} color="#1565C0" />
+        </div>
         {/* Hours — now above Color */}
         <label style={labelStyle}>Hours per shift</label>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:12, marginBottom:16 }}>
@@ -716,11 +723,16 @@ export default function LifeByShift() {
   function dropShift(date, shift) {
     const k = key(date);
     if (!shift.showOnCalendar) {
-      // "Off" / reset type — clear the cell + vanish sound
+      // "Off" / reset type — clear both schedule and secondary
       setSchedule(s => { const n={...s}; delete n[k]; return n; });
+      setSecondary(s => { const n={...s}; delete n[k]; return n; });
       playVanishSound();
+    } else if (shift.countInCalc === false) {
+      // Tracking-only shift → secondary
+      setSecondary(s => ({...s, [k]: shift}));
+      playCoinSound();
     } else if (shift.isOvertimeRate) {
-      // OT type — always ask how many hours (coin plays after confirm)
+      // OT type — always ask how many hours
       setOtDialog({date, shift});
     } else {
       setSchedule(s => ({...s, [k]: shift}));
@@ -873,6 +885,7 @@ export default function LifeByShift() {
               const today   = isToday(date);
               const payday  = isPayDay(date,settings);
               const shift   = schedule[k];
+              const secShift = secondary[k];
               const band    = payBand(date,settings.payPeriodStartDate);
               const hasNote = !!(notes[k]);
               const isSel   = selectedDate && key(selectedDate)===k;
@@ -890,10 +903,10 @@ export default function LifeByShift() {
                   onDrop={e=>{ e.preventDefault(); setHovering(null); if(dragShiftRef.current) dropShift(date,dragShiftRef.current); }}
                   onClick={()=>handleCellClick(date)}
                   onDoubleClick={()=>handleCellDblClick(date)}
-                  onMouseDown={()=>{ if(schedule[k]) { const t=setTimeout(()=>setRateDialog(date),600); window._lpt=t; } }}
+                  onMouseDown={()=>{ if(schedule[k]||secondary[k]) { const t=setTimeout(()=>setRateDialog(date),600); window._lpt=t; } }}
                   onMouseUp={()=>clearTimeout(window._lpt)}
                   onMouseLeave={()=>clearTimeout(window._lpt)}
-                  onTouchStart={()=>{ if(schedule[k]) { const t=setTimeout(()=>setRateDialog(date),600); window._lpt=t; } }}
+                  onTouchStart={()=>{ if(schedule[k]||secondary[k]) { const t=setTimeout(()=>setRateDialog(date),600); window._lpt=t; } }}
                   onTouchEnd={()=>clearTimeout(window._lpt)}
                   onContextMenu={e=>{e.preventDefault();setNoteDialog(date);}}
                   style={{ height:68,margin:1.5,borderRadius:8,background:bgCell,border:`${isSel||today?2:1}px solid ${isSel?"#1565C0":today?"#1565C0":isHov?hexOp("#1565C0",0.5):"rgba(0,0,0,0.13)"}`,position:"relative",cursor:"pointer",transition:"all 0.13s",display:"flex",alignItems:"center",justifyContent:"center" }}>

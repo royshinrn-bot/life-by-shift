@@ -911,13 +911,7 @@ export default function LifeByShift() {
                   onContextMenu={e=>{e.preventDefault();setNoteDialog(date);}}
                   style={{ height:68,margin:1.5,borderRadius:8,background:bgCell,border:`${isSel||today?2:1}px solid ${isSel?"#1565C0":today?"#1565C0":isHov?hexOp("#1565C0",0.5):"rgba(0,0,0,0.13)"}`,position:"relative",cursor:"pointer",transition:"all 0.13s",display:"flex",alignItems:"center",justifyContent:"center" }}>
                   {dayRates[k] && dayRates[k]!==1 && <div style={{ position:"absolute",top:2,left:2,background:"#6A1B9A",color:"#fff",fontSize:9,fontWeight:700,padding:"1px 4px",borderRadius:3 }}>{dayRates[k]}x</div>}
-                  {/* Secondary shift badge */}
-                  {secShift && (
-                    <div style={{ position:"absolute",bottom:2,left:2,fontSize:11,lineHeight:1 }}
-                      title={secShift.name}>
-                      {renderIcon(secShift.icon)}
-                    </div>
-                  )}
+
                   {/* PayDay badge */}
                   {payday && <div style={{ position:"absolute",top:2,right:2,background:"#2E7D32",color:"#fff",fontSize:9,fontWeight:700,padding:"1px 3px",borderRadius:3 }}>$</div>}
                   {/* Note dot */}
@@ -951,6 +945,13 @@ export default function LifeByShift() {
             )}
             <button onClick={()=>setNoteDialog(selectedDate)} style={{ marginLeft:"auto",background:"none",border:"none",cursor:"pointer",color:sub,fontSize:16 }}>✏️</button>
           </div>
+          {secondary[key(selectedDate)] && (
+            <div style={{ display:"flex",alignItems:"center",gap:6,marginTop:8,padding:"6px 10px",background:hexOp(secondary[key(selectedDate)].color,0.08),borderRadius:8,border:`1px dashed ${secondary[key(selectedDate)].color}` }}>
+              <span style={{ fontSize:16 }}>{renderIcon(secondary[key(selectedDate)].icon)}</span>
+              <span style={{ fontSize:13,fontWeight:600,color:secondary[key(selectedDate)].color }}>{secondary[key(selectedDate)].name}</span>
+              <span style={{ fontSize:11,color:"#888",marginLeft:"auto" }}>tracking only</span>
+            </div>
+          )}
           {notes[key(selectedDate)] ? (
             <div style={{ marginTop:8,paddingTop:8,borderTop:"1px solid #eee",fontSize:15,lineHeight:1.4,display:"flex",gap:6 }}>
               <span style={{ color:"#E65100",fontSize:14 }}>📝</span>

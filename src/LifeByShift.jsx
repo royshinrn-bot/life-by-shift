@@ -211,7 +211,7 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
       onClose={onClose}
       actions={[
         <button key="c" onClick={onClose} style={btnOutline}>Cancel</button>,
-        <button key="s" onClick={() => { onSave({...shift,name:name||shift.name,icon,color,hours,showOnCalendar,isOvertimeRate}); onClose(); }} style={btnFilled}>Save</button>
+        <button key="s" onClick={() => { onSave({...shift,name:name||shift.name,icon,color,hours,showOnCalendar,isOvertimeRate,countInCalc}); onClose(); }} style={btnFilled}>Save</button>
       ]}
     >
       {/* Preview */}

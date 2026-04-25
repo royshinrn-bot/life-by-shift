@@ -201,6 +201,7 @@ function ShiftEditDialog({ shift, onSave, onClose }) {
   const [hours, setHours] = useState(shift.hours);
   const [showOnCalendar, setShowOnCalendar] = useState(shift.showOnCalendar);
   const [isOvertimeRate, setIsOvertimeRate] = useState(shift.isOvertimeRate);
+  const [countInCalc, setCountInCalc] = useState(shift.countInCalc !== false);
   const presetKeys = ["sun","moon","bolt","bed","star","coffee","heart","home","money","clock","medical","school"];
   const [iconTab, setIconTab] = useState(presetKeys.includes(icon) ? "preset" : "emoji");
 

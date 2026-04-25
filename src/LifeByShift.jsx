@@ -541,7 +541,7 @@ function SettingsSheet({ settings, shiftTypes, onSave, onClose }) {
                   {shifts.length>1 && <button onClick={()=>setDeleteConfirm(i)} style={{ background:"none",border:"none",cursor:"pointer",padding:4,color:"#ef5350",fontSize:18 }}>🗑️</button>}
                 </div>
               ))}
-              {shifts.length < 8 && (
+              {shifts.length < 20 && (
                 <button onClick={()=>setAddingShift(true)}
                   style={{ width:"100%",padding:14,borderRadius:10,border:"1.5px dashed #1565C0",background:"none",color:"#1565C0",fontWeight:700,fontSize:15,cursor:"pointer",marginTop:4 }}>
                   + Add Shift Type
@@ -620,6 +620,7 @@ export default function LifeByShift() {
   const [schedule, setSchedule]   = useState(() => loadJSON("lbs_schedule", {}));
   const [notes, setNotes]         = useState(() => loadJSON("lbs_notes", {}));
   const [dayRates, setDayRates]   = useState(() => loadJSON("lbs_dayRates", {}));
+  const [secondary, setSecondary] = useState(() => loadJSON("lbs_secondary", {}));
   const [selectedDate, setSelectedDate] = useState(null);
   const [shiftTypes, setShiftTypes] = useState(() => loadJSON("lbs_shiftTypes", null) || defaultShiftTypes());
   const [dragging, setDragging]   = useState(null);
@@ -640,6 +641,7 @@ export default function LifeByShift() {
   useEffect(() => { saveJSON("lbs_shiftTypes", shiftTypes); }, [shiftTypes]);
   useEffect(() => { saveJSON("lbs_darkMode", darkMode); }, [darkMode]);
   useEffect(() => { saveJSON("lbs_dayRates", dayRates); }, [dayRates]);
+  useEffect(() => { saveJSON("lbs_secondary", secondary); }, [secondary]);
   useEffect(() => { if (!firstLaunch) saveJSON("lbs_launched", true); }, [firstLaunch]);
   useEffect(() => {
     saveJSON("lbs_settings", {
@@ -896,6 +898,13 @@ export default function LifeByShift() {
                   onContextMenu={e=>{e.preventDefault();setNoteDialog(date);}}
                   style={{ height:68,margin:1.5,borderRadius:8,background:bgCell,border:`${isSel||today?2:1}px solid ${isSel?"#1565C0":today?"#1565C0":isHov?hexOp("#1565C0",0.5):"rgba(0,0,0,0.13)"}`,position:"relative",cursor:"pointer",transition:"all 0.13s",display:"flex",alignItems:"center",justifyContent:"center" }}>
                   {dayRates[k] && dayRates[k]!==1 && <div style={{ position:"absolute",top:2,left:2,background:"#6A1B9A",color:"#fff",fontSize:9,fontWeight:700,padding:"1px 4px",borderRadius:3 }}>{dayRates[k]}x</div>}
+                  {/* Secondary shift badge */}
+                  {secShift && (
+                    <div style={{ position:"absolute",bottom:2,left:2,fontSize:11,lineHeight:1 }}
+                      title={secShift.name}>
+                      {renderIcon(secShift.icon)}
+                    </div>
+                  )}
                   {/* PayDay badge */}
                   {payday && <div style={{ position:"absolute",top:2,right:2,background:"#2E7D32",color:"#fff",fontSize:9,fontWeight:700,padding:"1px 3px",borderRadius:3 }}>$</div>}
                   {/* Note dot */}

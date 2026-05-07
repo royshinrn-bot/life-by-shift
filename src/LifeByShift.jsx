@@ -1024,8 +1024,8 @@ export default function LifeByShift() {
             </div>
             <div style={{ padding:"20px 20px 24px",display:"flex",flexDirection:"column",gap:14,overflowY:"auto",flex:1 }}>
               <div style={{ background:"#FFF8E1",borderRadius:12,padding:"12px 14px",border:"1px solid #FFE082" }}>
-                <div style={{ fontWeight:700,fontSize:13,color:"#F57F17",marginBottom:4 }}>⚠️ Beta Version</div>
-                <div style={{ fontSize:13,color:"#5D4037",lineHeight:1.6 }}>This app is currently running as a <strong>web app beta</strong>. A native iOS/Android app is coming soon.</div>
+                <div style={{ fontWeight:700,fontSize:13,color:"#F57F17",marginBottom:4 }}>📋 About This App</div>
+                <div style={{ fontSize:13,color:"#5D4037",lineHeight:1.6 }}>Life by Shift is a scheduling app designed for shift workers including nurses, firefighters, and police officers.</div>
               </div>
               <div style={{ background:"#E3F2FD",borderRadius:12,padding:"12px 14px",border:"1px solid #BBDEFB" }}>
                 <div style={{ fontWeight:700,fontSize:13,color:"#1565C0",marginBottom:4 }}>📱 Your Data</div>

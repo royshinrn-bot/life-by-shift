@@ -765,7 +765,7 @@ export default function LifeByShift() {
   return (
     <div style={{ fontFamily:"'Segoe UI',system-ui,sans-serif", background:bg, minHeight:"100vh", display:"flex", flexDirection:"column", width:"100%", position:"relative" }}>
       {/* ── Header ── */}
-      <div style={{ background:surf, padding:"10px 16px 10px 16px", display:"flex", alignItems:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.07)" }}>
+      <div style={{ background:surf, paddingTop:"max(10px, env(safe-area-inset-top))", paddingBottom:"10px", paddingLeft:"16px", paddingRight:"16px", display:"flex", alignItems:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.07)" }}>
         <img src="/app_title.png" style={{ height:32,objectFit:"contain" }} alt="Life by Shift" />
         <div style={{ marginLeft:"auto",display:"flex",gap:0 }}>
           <button onClick={()=>setDarkMode(d=>!d)} style={headerBtn}>{darkMode?"☀️":"🌙"}</button>
